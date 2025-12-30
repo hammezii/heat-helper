@@ -1,0 +1,22 @@
+[project]
+name = "heat-helper"
+version = "0.1.0"
+description = "A package containing useful functions to build your HEAT data pipeline."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=2.3.3",
+    "rapidfuzz>=3.14.3",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mkdocs-material>=9.7.1",
+    "mkdocstrings[python]>=1.0.0",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+]
