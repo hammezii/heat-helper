@@ -1,6 +1,8 @@
 import pytest
+from datetime import date
 from heat_helper.core import (
     get_excel_filepaths_in_folder,
+    _calc_current_academic_year_start,
 )
 
 
@@ -14,9 +16,10 @@ def test_get_files_silent_by_default(tmp_path, capsys):
 
     # Run without setting print_to_terminal (defaults to False)
     get_excel_filepaths_in_folder(str(d))
-    
+
     captured = capsys.readouterr()
     assert captured.out == ""  # Nothing should have been printed
+
 
 def test_get_files_printing(tmp_path, capsys):
     d = tmp_path / "sub-excel-print"
@@ -26,9 +29,10 @@ def test_get_files_printing(tmp_path, capsys):
 
     # Run with printing enabled
     get_excel_filepaths_in_folder(str(d), print_to_terminal=True)
-    
+
     captured = capsys.readouterr()
     assert "Found Excel file: test.xlsx" in captured.out
+
 
 def test_get_files_not_excel_printing(tmp_path, capsys):
     d = tmp_path / "sub-doc"
@@ -38,20 +42,42 @@ def test_get_files_not_excel_printing(tmp_path, capsys):
 
     # Run with printing enabled
     get_excel_filepaths_in_folder(str(d), print_to_terminal=True)
-    
+
     captured = capsys.readouterr()
     assert "Skipping non-Excel file: test.docx" in captured.out
 
+
 def test_get_files_folder_not_exist_raises_error():
     # Folder does not exist.
-    d = 'example_folder'
+    d = "example_folder"
     with pytest.raises(FileNotFoundError, match=f"The directory '{d}' does not exist."):
         get_excel_filepaths_in_folder(str(d))
+
 
 def test_get_excel_filepaths_empty(tmp_path):
     empty_dir = tmp_path / "empty"
     empty_dir.mkdir()
-    
+
     result = get_excel_filepaths_in_folder(str(empty_dir))
-    
+
     assert result == []
+
+
+@pytest.mark.parametrize(
+    "input_date, expected_year",
+    [
+        # Testing the Autumn/Winter threshold (Current year)
+        (date(2024, 9, 1), 2024),
+        (date(2024, 12, 31), 2024),
+        # Testing the Spring/Summer threshold (Previous year)
+        (date(2025, 1, 1), 2024),
+        (date(2025, 8, 31), 2024),
+        # Leap year check
+        (date(2024, 2, 29), 2023),
+        # Far future check
+        (date(2030, 10, 15), 2030),
+    ],
+)
+def test_calc_current_academic_year_start(input_date, expected_year):
+    """Checks that the academic year resets correctly every September."""
+    assert _calc_current_academic_year_start(input_date) == expected_year

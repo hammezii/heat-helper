@@ -1,11 +1,9 @@
+# Import helper functions
+from heat_helper.exceptions import InvalidYearGroupError
+from heat_helper.core import _parse_year_group_to_int
 
-#Import helper functions
-from .exceptions import InvalidYearGroupError
-from .core import _parse_year_group_to_int
 
-def clean_year_group(
-    year_group: str | int, errors: str = "raise"
-) -> str | None:
+def clean_year_group(year_group: str | int, errors: str = "raise") -> str | None:
     """Takes school year groups and cleans them to have the consistent format 'Year i'.
 
     Args:

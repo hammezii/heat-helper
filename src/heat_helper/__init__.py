@@ -14,7 +14,7 @@ from .names import (
 from .dates import (
     reverse_date,
     calculate_dob_range_from_year_group,
-    calculate_year_group_from_date
+    calculate_year_group_from_date,
 )
 
 from .postcode import (
@@ -29,6 +29,7 @@ from .yeargroup import (
 from .matching import (
     perform_exact_match,
     perform_fuzzy_match,
+    perform_school_age_range_fuzzy_match,
 )
 
 # Import *
@@ -46,7 +47,8 @@ __all__ = [
     "remove_diacritics",
     "perform_exact_match",
     "calculate_year_group_from_date",
-    "perform_fuzzy_match"
+    "perform_fuzzy_match",
+    "perform_school_age_range_fuzzy_match",
 ]
 
 # Version constant

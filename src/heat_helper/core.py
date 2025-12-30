@@ -1,23 +1,33 @@
 # Import internal libraries
-from datetime import date
 import re
 import os
+from datetime import date
 
-#Import external libraries
+# Import external libraries
 
-#Import helper functions
-from .exceptions import InvalidYearGroupError, FELevelError
+# Import helper functions
+from heat_helper.exceptions import InvalidYearGroupError, FELevelError
+
+
+# Get CURRENT_ACADEMIC_YEAR_START constant
+def _calc_current_academic_year_start(date_now: date) -> int:
+    if date_now.month in [9, 10, 11, 12]:
+        return date_now.year
+    else:
+        return date_now.year - 1
+
 
 # Constants defined at module level for performance
 RECEPTION_ALIASES = {"reception", "r", "year r", "rec", "year group r", "y0", "year 0"}
 POSTCODE_REGEX = r"^[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][A-Z]{2}$"
+CURRENT_ACADEMIC_YEAR_START = _calc_current_academic_year_start(date.today())
 
 
 # Helper functions for main functions
 def _parse_year_group_to_int(year_group: str | int) -> int:
     """Internal helper to convert any year group input to an integer (0-13)."""
     if isinstance(year_group, str):
-        if 'Level' in year_group:
+        if "Level" in year_group:
             raise FELevelError(year_group)
         clean_input = year_group.strip().lower()
         if clean_input in RECEPTION_ALIASES:
@@ -34,6 +44,7 @@ def _parse_year_group_to_int(year_group: str | int) -> int:
         raise InvalidYearGroupError(year_group)
     return y_num
 
+
 def _string_contains_int(string: str) -> bool:
     match = re.search(r"[0-9]+", string)
     if not match:
@@ -41,8 +52,11 @@ def _string_contains_int(string: str) -> bool:
     else:
         return True
 
+
 # Main functions for file manipulation
-def get_excel_filepaths_in_folder(input_dir: str, print_to_terminal: bool = False) -> list[str]:
+def get_excel_filepaths_in_folder(
+    input_dir: str, print_to_terminal: bool = False
+) -> list[str]:
     """Returns a list of filepaths to Excel files (with the extension .xlsx or .xls) in a given folder.
 
     Args:
@@ -55,11 +69,12 @@ def get_excel_filepaths_in_folder(input_dir: str, print_to_terminal: bool = Fals
     Returns:
         List: A list of filepaths from the specified folder. Returns empty list if there are no Excel files in the folder.
     """
+
     # Helper function to control if messages are printed to terminal
     def log(message: str):
         if print_to_terminal:
             print(message)
-    
+
     # Checks directory exists before function starts
     if not os.path.exists(input_dir):
         raise FileNotFoundError(f"The directory '{input_dir}' does not exist.")
