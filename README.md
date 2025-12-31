@@ -44,9 +44,9 @@ uv add git+https://github.com/hammezii/heat-helper.git
 - pandas >= 2.3.3
 
 ## Documentation
-You can access the documentation here: []().
+You can access the documentation **[here](https://hammezii.github.io/heat-helper/)**.
 
-The doumentation is frequently updated with more examples of how to use heat_helper.
+The doumentation is a work in progress and will be updated with more examples of how to use `heat_helper`.
 
 ## Contributing
 You are welcome to contribute to `heat_helper`. Please either submit an issue or a pull request. 
