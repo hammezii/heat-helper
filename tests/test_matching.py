@@ -336,8 +336,8 @@ def test_successful_school_age_match(unmatched_data, heat_data):
             "HEAT_Name",
             "YG",
             "DOB",
-            "HEAT_ID",
             "School Match",
+            heat_id_col="HEAT_ID",
         )
 
         assert len(matches) == 1
@@ -369,8 +369,8 @@ def test_duplicate_heat_id_conflict(unmatched_data, heat_data):
             "HEAT_Name",
             "YG",
             "DOB",
-            "HEAT_ID",
             "Conflict Test",
+            heat_id_col="HEAT_ID",
         )
 
         # Should only keep one match (the better score)

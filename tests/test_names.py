@@ -82,7 +82,7 @@ def test_find_numbers_ignore():
 
 def test_find_numbers_coerce():
     # Should convert 123 to "123" and then return True
-    assert find_numbers_in_text(123, errors="coerce") == True
+    assert find_numbers_in_text(123, errors="coerce") == None
 
 
 # REMOVE NUMBERS
@@ -119,7 +119,7 @@ def test_remove_numbers(num_name, remove_num_name):
 
 def test_remove_numbers_coerce():
     # Trigger the 'coerce' block in the except TypeError clause
-    assert remove_numbers_from_text(123, errors="coerce") == ""
+    assert remove_numbers_from_text(123, errors="coerce") == None
 
 
 # DIACRITICS
@@ -160,8 +160,8 @@ def test_errors_ignore():
 
 def test_errors_coerce():
     """Verify input is cast to string when errors='coerce'."""
-    assert remove_diacritics(123, errors="coerce") == "123"
-    assert remove_diacritics(True, errors="coerce") == "True"
+    assert remove_diacritics(123, errors="coerce") == None
+    assert remove_diacritics(True, errors="coerce") == None
 
 
 # CREATE FULL NAME

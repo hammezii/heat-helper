@@ -14,7 +14,7 @@ def format_name(text: str, errors: str = "raise") -> str | None:
 
     Args:
         text: The name you wish to clean.
-        errors (optional): default = 'raise' which raises all errors. 'ignore' returns orignal value, 'coerce' returns None.
+        errors (optional): default = 'raise' which raises all errors. 'ignore' ignores errors and returns original value, 'coerce' returns None.
 
     Raises:
         TypeError: Raised if text is not a string.
@@ -41,7 +41,7 @@ def format_name(text: str, errors: str = "raise") -> str | None:
         )
         return working_text
     except TypeError:
-        if errors == "ignore":
+        if errors == 'ignore':
             return text
         if errors == "coerce":
             return None
@@ -50,12 +50,12 @@ def format_name(text: str, errors: str = "raise") -> str | None:
 
 def find_numbers_in_text(
     text: str, errors: str = "raise", convert_to_string: bool = False
-) -> bool | str:
+) -> bool | str | None:
     """Checks if one or more numbers are present in a string. Numbers do not have to be consecutive.
 
     Args:
         text: the text to check for numbers.
-        errors (optional): Defaults to 'raise' which raises errors. 'ignore' ignores errors and returns 'Input not string: result unknown'. 'coerce' attempts to convert the input to string before running the function.
+        errors (optional): Defaults to 'raise' which raises errors. 'ignore' ignores errors and returns 'Input not string: result unknown'. 'coerce' returns None.
         convert_to_string (optional): Tells the function to convert text datatype to string, if possible. Defaults to False.
 
     Raises:
@@ -75,18 +75,18 @@ def find_numbers_in_text(
         if errors == "ignore":
             return "Input not string: result unknown."
         if errors == "coerce":
-            return _string_contains_int(str(text))
+            return None
         raise
 
 
 def remove_numbers_from_text(
     text: str, errors: str = "raise", convert_to_string: bool = False
-) -> str:
+) -> str | None:
     """Removes one or more numbers from a string (text). Numbers do not have to be consecutive.
 
     Args:
         text: The string you want to remove numbers from e.g. 'Jane Doe 43'
-        errors (optional): Defaults to 'raise' which raises errors. 'ignore' ignores errors and returns 'Input not string: can't remove numbers'. 'coerce' attempts to convert the input to string before running the function.
+        errors (optional): Defaults to 'raise' which raises errors. 'ignore' ignores errors and returns 'Input not string: can't remove numbers'. 'coerce' returns None.
         convert_to_string (optional): Tells the function to convert text datatype to string, if possible. Defaults to False.
 
     Raises:
@@ -109,10 +109,7 @@ def remove_numbers_from_text(
         if errors == "ignore":
             return "Input not string: can't remove numbers."
         if errors == "coerce":
-            text = str(text)
-            if _string_contains_int(text):
-                coerced_clean = re.sub(r"[0-9]+", "", text)
-                return coerced_clean.strip()
+            return None
         raise
 
 
@@ -144,12 +141,12 @@ def create_full_name(
         return full_name
 
 
-def remove_diacritics(input_text: str, errors: str = "raise") -> str:
+def remove_diacritics(input_text: str, errors: str = "raise") -> str | None:
     """Removes diacritics (accented letters) from text. Uses python's built-in unicodedata library and normalises to NFKD before removal.
 
     Args:
         input_text: The text you want to remove diacritics from.
-        errors (optional): Defaults to 'raise' which raises errors. 'ignore' ignores errors and returns original text. 'coerce' attempts to turn input_text into as string.
+        errors (optional): Defaults to 'raise' which raises errors. 'ignore' ignores errors and returns original text. 'coerce' ignores errors and eturns None.
 
     Raises:
         TypeError: Raised if input_text is not a string.
@@ -159,15 +156,12 @@ def remove_diacritics(input_text: str, errors: str = "raise") -> str:
     """
     try:
         if not isinstance(input_text, str):
-            if errors == "coerce":
-                input_text = str(input_text)
-            elif errors == "ignore":
-                return input_text
-            else:
-                raise TypeError(
-                    f"Input must be a string, not {type(input_text).__name__}"
-                )
+            raise TypeError(f"Input must be a string, not {type(input_text).__name__}")
         nfkd_form = unicodedata.normalize("NFKD", input_text)
         return "".join([c for c in nfkd_form if unicodedata.category(c) != "Mn"])
     except:
+        if errors == "coerce":
+            return None
+        if errors == "ignore":
+            return input_text
         raise

@@ -1,5 +1,6 @@
 import pytest
-from heat_helper.yeargroup import clean_year_group
+from datetime import date
+from heat_helper.yeargroup import clean_year_group, calculate_year_group_from_date
 from heat_helper.exceptions import InvalidYearGroupError, FELevelError
 
 
@@ -50,3 +51,29 @@ def test_fe_level():
 def test_level():
     with pytest.raises(FELevelError):
         clean_year_group("Level 2")
+
+
+def test_calculate_year_group_branches():
+    # Test Autumn birth (offset 5)
+    # Born Sept 2020, Start of year 2025 -> 2025 - 2020 - 5 = 0 (Reception)
+    assert calculate_year_group_from_date(date(2020, 9, 1), 2025) == "Reception"
+
+    # Test Spring birth (offset 4)
+    # Born Jan 2020, Start of year 2025 -> 2025 - 2020 - 4 = 1 (Year 1)
+    assert calculate_year_group_from_date(date(2020, 1, 1), 2025) == "Year 1"
+
+    # Test 'Too young' branch
+    # Born 2024, Start of year 2025 -> 2025 - 2024 - 4 = -3
+    assert (
+        calculate_year_group_from_date(date(2024, 1, 1), 2025)
+        == "Student too young for school"
+    )
+
+
+def test_calculate_year_group_errors():
+    # Test TypeError raise
+    with pytest.raises(TypeError):
+        calculate_year_group_from_date("2020-01-01", 2025)
+
+    # Test errors='ignore' branch
+    assert calculate_year_group_from_date(123, 2025, errors="ignore") is None

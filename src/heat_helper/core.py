@@ -27,7 +27,7 @@ CURRENT_ACADEMIC_YEAR_START = _calc_current_academic_year_start(date.today())
 def _parse_year_group_to_int(year_group: str | int) -> int:
     """Internal helper to convert any year group input to an integer (0-13)."""
     if isinstance(year_group, str):
-        if "Level" in year_group:
+        if "level" in year_group.lower():
             raise FELevelError(year_group)
         clean_input = year_group.strip().lower()
         if clean_input in RECEPTION_ALIASES:
@@ -51,6 +51,26 @@ def _string_contains_int(string: str) -> bool:
         return False
     else:
         return True
+    
+def _is_valid_postcode(postcode: str) -> bool:
+    """Checks if a string is a validly formatted UK postcode. Does not check a postcode exists.
+    Matches formats: A9 9AA, A99 9AA, AA9 9AA, AA99 9AA, A9A 9AA, AA9A 9AA.
+
+    Args:
+        postcode: the postcode to pattern match.
+
+    Returns:
+        True/False
+    """
+    if not isinstance(postcode, str):
+        return False
+
+    # If it's too short to even be a postcode, fail fast
+    if len(postcode) < 5:
+        return False
+
+    # Check against the Regex
+    return bool(re.match(POSTCODE_REGEX, postcode))
 
 
 # Main functions for file manipulation

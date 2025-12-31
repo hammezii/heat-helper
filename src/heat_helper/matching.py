@@ -245,8 +245,8 @@ def perform_school_age_range_fuzzy_match(
     heat_name_col: str,
     unmatched_year_group_col: str,
     heat_dob_col: str,
-    heat_id_col: str,
     match_desc: str,
+    heat_id_col: str = 'Student HEAT ID',
     academic_year_start: int = CURRENT_ACADEMIC_YEAR_START,
     threshold: int = 80,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -264,8 +264,8 @@ def perform_school_age_range_fuzzy_match(
         heat_name_col: Column which contains Student name in heat_df.
         unmatched_year_group_col: Column in unmatched_df which contains year group for age range calculation.
         heat_dob_col: Column in heat_df which contains Student Date of Birth.
-        heat_id_col: Column in heat_df which contains HEAT Student ID.
         match_desc: A description of the match; added to a 'Match Type' col in the returned matched DataFrame. Should be descriptive to help you verify matches later, especially if joining multiple returns of this function and exporting to a .csv or Excel file.
+        heat_id_col (optional): Column in heat_df which contains HEAT Student ID. Defaults to 'Student HEAT ID'.
         academic_year_start (optional): . Defaults to start of current academic year (calculated by package).
         threshold (optional): The acceptable percentage match for fuzzy matching. Higher is stricter and matches will be more similar. Defaults to 80.
 

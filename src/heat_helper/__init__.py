@@ -13,17 +13,16 @@ from .names import (
 
 from .dates import (
     reverse_date,
-    calculate_dob_range_from_year_group,
-    calculate_year_group_from_date,
+    calculate_dob_range_from_year_group
 )
 
 from .postcode import (
     format_postcode,
-    is_valid_postcode,
 )
 
 from .yeargroup import (
     clean_year_group,
+    calculate_year_group_from_date,
 )
 
 from .matching import (
@@ -37,7 +36,6 @@ __all__ = [
     "calculate_dob_range_from_year_group",
     "clean_year_group",
     "format_postcode",
-    "is_valid_postcode",
     "get_excel_filepaths_in_folder",
     "format_name",
     "find_numbers_in_text",

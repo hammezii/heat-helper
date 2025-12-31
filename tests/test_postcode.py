@@ -1,6 +1,7 @@
 import pytest
-from heat_helper.postcode import format_postcode, is_valid_postcode
+from heat_helper.postcode import format_postcode
 from heat_helper.exceptions import InvalidPostcodeError
+from heat_helper.core import _is_valid_postcode
 
 
 @pytest.mark.parametrize(
@@ -15,26 +16,6 @@ from heat_helper.exceptions import InvalidPostcodeError
 )
 def test_postcode_cleaning(raw, expected):
     assert format_postcode(raw) == expected
-
-
-@pytest.mark.parametrize(
-    "postcode, expected",
-    [
-        ("CR2 6XH", True),  # AA9 9AA
-        ("DN55 1PT", True),  # AA99 9AA
-        ("M1 1AE", True),  # A9 9AA
-        ("B33 8TH", True),  # A99 9AA
-        ("W1A 0AX", True),  # A9A 9AA
-        ("EC1A 1BB", True),  # AA9A 9AA
-        ("12 345", False),  # Numbers first
-        ("ABC 123", False),  # Too many letters in outward
-        ("SW1A 1A", False),  # Inward too short
-        ("", False),  # Empty string
-        (None, False),  # Non-string input
-    ],
-)
-def test_is_valid_postcode_logic(postcode, expected):
-    assert is_valid_postcode(postcode) == expected
 
 
 def test_format_postcode_validation_success():
@@ -71,3 +52,24 @@ def test_postcode_type_safety():
 
     # Testing ignore mode for a number
     assert format_postcode(12345, errors="ignore") == 12345
+
+
+# POSTCODE CHECK
+@pytest.mark.parametrize(
+    "postcode, expected",
+    [
+        ("CR2 6XH", True),  # AA9 9AA
+        ("DN55 1PT", True),  # AA99 9AA
+        ("M1 1AE", True),  # A9 9AA
+        ("B33 8TH", True),  # A99 9AA
+        ("W1A 0AX", True),  # A9A 9AA
+        ("EC1A 1BB", True),  # AA9A 9AA
+        ("12 345", False),  # Numbers first
+        ("ABC 123", False),  # Too many letters in outward
+        ("SW1A 1A", False),  # Inward too short
+        ("", False),  # Empty string
+        (None, False),  # Non-string input
+    ],
+)
+def test_is_valid_postcode_logic(postcode, expected):
+    assert _is_valid_postcode(postcode) == expected

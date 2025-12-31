@@ -2,7 +2,7 @@
 import re
 
 # Import helper functions
-from heat_helper.core import POSTCODE_REGEX
+from heat_helper.core import _is_valid_postcode
 from heat_helper.exceptions import InvalidPostcodeError
 
 
@@ -34,7 +34,7 @@ def format_postcode(postcode: str, errors: str = "raise") -> str | None:
         clean = clean.upper().strip()
         formatted = f"{clean[:-3]} {clean[-3:]}"
 
-        if not is_valid_postcode(formatted):
+        if not _is_valid_postcode(formatted):
             raise InvalidPostcodeError(postcode)
 
         return formatted
@@ -44,30 +44,3 @@ def format_postcode(postcode: str, errors: str = "raise") -> str | None:
         if errors == "coerce":
             return None
         raise
-
-
-def is_valid_postcode(postcode: str) -> bool:
-    """Checks if a string is a validly formatted UK postcode. Does not check a postcode exists.
-    Matches formats: A9 9AA, A99 9AA, AA9 9AA, AA99 9AA, A9A 9AA, AA9A 9AA.
-
-    Args:
-        postcode: the postcode to pattern match.
-
-    Returns:
-        True/False
-    """
-    if not isinstance(postcode, str):
-        return False
-
-    clean = re.sub(r"\s+", "", postcode)
-    clean = clean.upper().strip()
-
-    # If it's too short to even be a postcode, fail fast
-    if len(clean) < 5:
-        return False
-
-    # Format with the space so the Regex can check the 'Outward' and 'Inward' parts
-    formatted = f"{clean[:-3]} {clean[-3:]}"
-
-    # 2. Check against the Regex
-    return bool(re.match(POSTCODE_REGEX, formatted))
