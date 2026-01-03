@@ -7,7 +7,7 @@ from heat_helper.exceptions import (
     FilterColumnMismatchError,
 )
 from heat_helper.dates import calculate_dob_range_from_year_group
-from heat_helper.core import CURRENT_ACADEMIC_YEAR_START
+from heat_helper.core import CURRENT_ACADEMIC_YEAR_START, STUDENT_HEAT_ID
 
 
 def perform_exact_match(
@@ -17,7 +17,7 @@ def perform_exact_match(
     right_join_cols: list[str],
     match_type_desc: str,
     verify: bool = False,
-    student_heat_id_col: str = "Student HEAT ID",
+    student_heat_id_col: str = STUDENT_HEAT_ID,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Performs an exact match on specified columns between new data and your HEAT Student export and returns the HEAT Student ID if a match is found.
     This function returns two DataFrames: one containing the matches and one containing unmatched students, for passing to another matching function.
@@ -123,6 +123,7 @@ def perform_fuzzy_match(
     left_name_col: str,
     right_name_col: str,
     match_desc: str,
+    heat_id_col: str = STUDENT_HEAT_ID,
     threshold: int = 80,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """This function allows you to fuzzy match names of students in an external dataset to your HEAT Student Export to retrieve HEAT Student IDs.
@@ -136,6 +137,7 @@ def perform_fuzzy_match(
         left_name_col: Column which contains the name information (to be matched) in unmatched_df.
         right_name_col: Column which contains the name information in heat_df.
         match_desc: A description of the match; added to a 'Match Type' col in the returned matched DataFrame. Should be descriptive to help you verify matches later, especially if joining multiple returns of this function and exporting to a .csv or Excel file.
+        heat_id_col (optional): Column in heat_df which contains HEAT Student ID. Defaults to 'Student HEAT ID'.
         threshold (optional): The acceptable percentage match for fuzzy matching. Higher is stricter and matches will be more similar. Defaults to 80.
 
     Raises:
@@ -181,6 +183,11 @@ def perform_fuzzy_match(
         )
 
     print(f"Attempting fuzzy match where {left_filter_cols} match HEAT data.")
+
+    # Create copies in case slice passed to function
+    unmatched_df = unmatched_df.copy()
+    heat_df = heat_df.copy()
+
     # create heat_df blocks for faster matching
     grouped_heat = heat_df.groupby(right_filter_cols).groups
 
@@ -212,25 +219,44 @@ def perform_fuzzy_match(
                 res = pd.concat([row, heat_df.loc[heat_idx].add_suffix("_HEAT")])
                 res["Fuzzy Score"] = round(score, 2)
                 res["Match Type"] = match_desc
+                res["__SOURCE_INDEX__"] = idx
                 matched_results.append(res)
 
-    # Create matches df and rename cols to match output of exact_match if verify = True
+    # 
     final_matches = pd.DataFrame(matched_results)
     if not final_matches.empty:
+        final_matches.sort_values(
+            by="Fuzzy Score", ascending=False, inplace=True, ignore_index=True
+        )
+
+        heat_student_id_col = f"{heat_id_col}_HEAT"
+
+        initial_count = len(final_matches)
+        final_matches = final_matches.drop_duplicates(
+            subset=[heat_student_id_col], keep="first"
+        )
+        conflicts_removed = initial_count - len(final_matches)
+
+        if conflicts_removed > 0:
+            print(
+                f"     ...Removed {conflicts_removed} duplicate HEAT ID assignments (kept highest scores)."
+            )
+
+        # Rename HEAT columns
         heat_cols = [c for c in final_matches.columns if c.endswith("_HEAT")]
         mapping = {col: f"HEAT: {col.removesuffix('_HEAT')}" for col in heat_cols}
         final_matches.rename(columns=mapping, inplace=True)
-        final_matches.sort_values(
-            by="Fuzzy Score",
-            ascending=False,
-            inplace=True,
-            ignore_index=True,
-        )
+
+        # Sort out indices for dropping
+        matched_indices = final_matches["__SOURCE_INDEX__"].tolist()
+        final_matches.drop(columns=["__SOURCE_INDEX__"], inplace=True)
+
         print(f"     ...{len(final_matches)} students found in HEAT data.")
     else:
+        matched_indices = []
         print("     ...0 students found in HEAT data.")
+    
     # Identify who is still missing
-    matched_indices = [res.name for res in matched_results] if matched_results else []
     remaining_unmatched = unmatched_df.drop(matched_indices)
     print(f"     ...{len(remaining_unmatched)} students left to find.")
     return final_matches, remaining_unmatched
@@ -246,7 +272,7 @@ def perform_school_age_range_fuzzy_match(
     unmatched_year_group_col: str,
     heat_dob_col: str,
     match_desc: str,
-    heat_id_col: str = 'Student HEAT ID',
+    heat_id_col: str = STUDENT_HEAT_ID,
     academic_year_start: int = CURRENT_ACADEMIC_YEAR_START,
     threshold: int = 80,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:

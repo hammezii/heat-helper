@@ -183,6 +183,7 @@ def test_successful_fuzzy_match(sample_unmatched, sample_heat):
         left_name_col="External_Name",
         right_name_col="Name",
         match_desc="DOB+PC Match",
+        heat_id_col="ID",
         threshold=80,
     )
 

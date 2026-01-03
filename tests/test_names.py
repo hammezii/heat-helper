@@ -6,6 +6,7 @@ from heat_helper.names import (
     remove_numbers_from_text,
     remove_diacritics,
     create_full_name,
+    remove_punctuation
 )
 
 
@@ -182,3 +183,48 @@ def test_create_full_name_pandas():
 
     expected = pd.Series(["Jane Doe", "John Smith"])
     pd.testing.assert_series_equal(result, expected)
+
+
+# Test Remove punctuation
+def test_punctuation_replacement_with_space():
+    """
+    Verifies that punctuation is replaced by a space, 
+    preventing words from merging.
+    """
+    # "word...word" -> "word   word" -> "word word"
+    assert remove_punctuation("word...word") == "word word"
+
+def test_standard_cleaning():
+    """Checks a mix of different punctuation marks and spacing."""
+    input_text = "hello! [world]? this... is ; a test."
+    expected = "hello world this is a test"
+    assert remove_punctuation(input_text) == expected
+
+def test_whitespace_collapsing():
+    """Ensures that multiple spaces (original or created) are reduced to one."""
+    input_text = "space      between , and , dots..."
+    # Should not result in "space between   and   dots "
+    assert remove_punctuation(input_text) == "space between and dots"
+
+def test_numeric_strings():
+    """Checks that numbers remain intact but separators are removed."""
+    assert remove_punctuation("123,456!") == "123 456"
+
+@pytest.mark.parametrize("input_val, error_mode, expected", [
+    (None, "coerce", None),
+    (100, "ignore", 100),
+    ([], "coerce", None),
+])
+def test_error_handling_modes(input_val, error_mode, expected):
+    """Tests the 'coerce' and 'ignore' safety valves for non-string types."""
+    assert remove_punctuation(input_val, errors=error_mode) == expected
+
+def test_raise_on_invalid_type():
+    """Ensures the function raises TypeError by default for non-strings."""
+    with pytest.raises(TypeError, match="Input must be a string"):
+        remove_punctuation({"key": "value"})
+
+def test_custom_punctuation_override():
+    """Ensures the function respects the 'punctuation' argument if provided."""
+    # Only remove the '@', leave the '!'
+    assert remove_punctuation("user@host!", punctuation="@") == "user host!"

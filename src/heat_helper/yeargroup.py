@@ -50,7 +50,7 @@ def calculate_year_group_from_date(
     try:
         if not isinstance(input_date, date):
             raise TypeError(f"Input must be a date, not {type(input_date).__name__}")
-        if input_date.month in [9, 10, 11]:
+        if input_date.month in [9, 10, 11, 12]:
             offset = 5
         else:
             offset = 4

@@ -9,7 +9,7 @@ from datetime import date
 from heat_helper.exceptions import InvalidYearGroupError, FELevelError
 
 
-# Get CURRENT_ACADEMIC_YEAR_START constant
+# Get CURRENT_ACADEMIC_YEAR_START constant function defined here apart from others due to constant below
 def _calc_current_academic_year_start(date_now: date) -> int:
     if date_now.month in [9, 10, 11, 12]:
         return date_now.year
@@ -17,10 +17,21 @@ def _calc_current_academic_year_start(date_now: date) -> int:
         return date_now.year - 1
 
 
-# Constants defined at module level for performance
+# CONSTANTS
+#Used in clean year groups
 RECEPTION_ALIASES = {"reception", "r", "year r", "rec", "year group r", "y0", "year 0"}
+
+#Used to validated postcode format
 POSTCODE_REGEX = r"^[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][A-Z]{2}$"
+
+#Used to calculate current academic year for year group / date maniuplation functions
 CURRENT_ACADEMIC_YEAR_START = _calc_current_academic_year_start(date.today())
+
+#Used to remove punctuation except hyphens and apostrophes
+PUNCTUATION = '!@#£$%^&*()_=+`~,.<>/?;:"|[]'
+
+#For matching functions
+STUDENT_HEAT_ID = "Student HEAT ID"
 
 
 # Helper functions for main functions
@@ -36,9 +47,10 @@ def _parse_year_group_to_int(year_group: str | int) -> int:
         if not match:
             raise InvalidYearGroupError(year_group)
         y_num = int(match.group())
+    elif isinstance(year_group, int):
+        y_num = year_group
     else:
-        if isinstance(year_group, int):
-            y_num = year_group
+        raise TypeError(f"Input must be str or int, not {type(year_group).__name__}")
 
     if not (0 <= y_num <= 13):
         raise InvalidYearGroupError(year_group)

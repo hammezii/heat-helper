@@ -6,7 +6,7 @@ import unicodedata
 import pandas as pd
 
 # Import helper functions
-from heat_helper.core import _string_contains_int
+from heat_helper.core import _string_contains_int, PUNCTUATION
 
 
 def format_name(text: str, errors: str = "raise") -> str | None:
@@ -164,4 +164,33 @@ def remove_diacritics(input_text: str, errors: str = "raise") -> str | None:
             return None
         if errors == "ignore":
             return input_text
+        raise
+
+
+def remove_punctuation(text: str, punctuation: str = PUNCTUATION, errors: str = 'raise') -> str | None:
+    """Removes all punctuation except for hyphens and apostrophes from text. Useful for cleaning names.
+
+    Args:
+        text (str): Text you wish to remove punctuation from.
+        punctuation (optional): String containing all punctuation except for hyphens and apostrophes. Can be overridden with your own version if you want to exclude other types of punctuation. Should be one string of all chars to remove.
+        errors (optional): Defaults to 'raise', which raises errors. 'coerce' returns None, while 'ignore' ignores errors and returns original text.
+
+    Raises:
+        TypeError: Raised if text is not a string.
+
+    Returns:
+        Text with all punctuation except hyphens and apostrophes removed e.g. 'Jane! Doe.' -> 'Jane Doe'
+    """
+    try:
+        if not isinstance(text, str):
+            raise TypeError(f"Input must be a string, not {type(text).__name__}")
+        table = str.maketrans(punctuation, " " * len(punctuation))
+        text = text.strip().translate(table)
+        cleaned = re.sub(r"\s+", " ", text).strip()
+        return cleaned
+    except:
+        if errors == "coerce":
+            return None
+        if errors == "ignore":
+            return text
         raise

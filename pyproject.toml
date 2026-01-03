@@ -1,13 +1,22 @@
 [project]
 name = "heat-helper"
-version = "0.1.0"
-description = "A package containing useful functions to build your HEAT data pipeline."
+description = "A python library to help users of the Higher Education Access Tracker (HEAT) process their data."
+authors = [
+    {name = "Hannah Merry"}
+]
+version = "0.1.1"
+license = "GPL-3.0"
+license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "pandas>=2.3.3",
     "rapidfuzz>=3.14.3",
 ]
+
+[project.urls]
+Documentation = "https://hammezii.github.io/heat-helper/"
+Repository = "https://github.com/hammezii/heat-helper"
 
 [build-system]
 requires = ["hatchling"]

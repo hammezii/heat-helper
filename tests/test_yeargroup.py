@@ -77,3 +77,16 @@ def test_calculate_year_group_errors():
 
     # Test errors='ignore' branch
     assert calculate_year_group_from_date(123, 2025, errors="ignore") is None
+
+
+def test_calculate_year_group_boundaries_and_offsets():
+    # Test the upper boundary (> 13)
+    # Born 2005, Sept start 2025 -> 2025 - 2005 - 5 = 15
+    with pytest.raises(InvalidYearGroupError):
+        calculate_year_group_from_date(date(2005, 10, 1), 2025)
+
+    # Test month offset logic for the 'else' months (e.g., December and June)
+    assert calculate_year_group_from_date(date(2020, 5, 1), 2025) == "Year 1"
+    
+    # Born June 2020: offset 4. 2025 - 2020 - 4 = Year 1.
+    assert calculate_year_group_from_date(date(2020, 6, 1), 2025) == "Year 1"
