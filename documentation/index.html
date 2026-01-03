@@ -770,6 +770,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#heat_helper.names.remove_punctuation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remove punctuation from text
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1081,6 +1092,17 @@
     <span class="md-ellipsis">
       
         Remove diacritics from text
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heat_helper.names.remove_punctuation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remove punctuation from text
       
     </span>
   </a>
@@ -1875,6 +1897,134 @@
             <td>
               <div class="doc-md-description">
                 <p>Text with accents removed e.g. 'Chloë' -&gt; 'Chloe'.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="heat_helper.names.remove_punctuation" class="doc doc-heading">
+            Remove Punctuation
+
+
+</h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Removes all punctuation except for hyphens and apostrophes from text. Useful for cleaning names.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>text</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Text you wish to remove punctuation from.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>punctuation</code>
+            </td>
+            <td>
+                  <code><span title="optional">optional</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>String containing all punctuation except for hyphens and apostrophes. Can be overridden with your own version if you want to exclude other types of punctuation. Should be one string of all chars to remove.</p>
+              </div>
+            </td>
+            <td>
+                  <code><span title="heat_helper.core.PUNCTUATION">PUNCTUATION</span></code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>errors</code>
+            </td>
+            <td>
+                  <code><span title="optional">optional</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Defaults to 'raise', which raises errors. 'coerce' returns None, while 'ignore' ignores errors and returns original text.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;raise&#39;</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="TypeError">TypeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Raised if text is not a string.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="str">str</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Text with all punctuation except hyphens and apostrophes removed e.g. 'Jane! Doe.' -&gt; 'Jane Doe'</p>
               </div>
             </td>
           </tr>
@@ -2747,7 +2897,7 @@ This is useful to create a matching waterfall where you move through different l
               </div>
             </td>
             <td>
-                  <code>&#39;Student HEAT ID&#39;</code>
+                  <code><span title="heat_helper.core.STUDENT_HEAT_ID">STUDENT_HEAT_ID</span></code>
             </td>
           </tr>
       </tbody>
@@ -2951,6 +3101,22 @@ You can control the potential pool of fuzzy matches by specifying filter columns
             </td>
             <td>
                 <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>heat_id_col</code>
+            </td>
+            <td>
+                  <code><span title="optional">optional</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Column in heat_df which contains HEAT Student ID. Defaults to 'Student HEAT ID'.</p>
+              </div>
+            </td>
+            <td>
+                  <code><span title="heat_helper.core.STUDENT_HEAT_ID">STUDENT_HEAT_ID</span></code>
             </td>
           </tr>
           <tr class="doc-section-item">
@@ -3239,7 +3405,7 @@ Returns one dataframe of matches and one dataframe of remaining unmatched data.<
               </div>
             </td>
             <td>
-                  <code>&#39;Student HEAT ID&#39;</code>
+                  <code><span title="heat_helper.core.STUDENT_HEAT_ID">STUDENT_HEAT_ID</span></code>
             </td>
           </tr>
           <tr class="doc-section-item">
