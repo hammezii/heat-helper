@@ -276,6 +276,7 @@ def test_column_collision_warning(sample_unmatched, sample_heat, capsys):
         "External_Name",
         "Name",
         "T",
+        heat_id_col='ID'
     )
     captured = capsys.readouterr()
     assert "WARNING" in captured.out

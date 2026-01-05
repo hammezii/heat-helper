@@ -195,7 +195,8 @@ def perform_fuzzy_match(
 
     # Go through each row in unmatched data
     for idx, row in unmatched_df.iterrows():
-        search_key = tuple(row[left_filter_cols])
+        search_values = row[left_filter_cols].tolist()
+        search_key = tuple(search_values) if len(search_values) > 1 else search_values[0]
 
         # Does this block exist in the Heat data?
         if search_key in grouped_heat:
@@ -222,7 +223,7 @@ def perform_fuzzy_match(
                 res["__SOURCE_INDEX__"] = idx
                 matched_results.append(res)
 
-    # 
+    # final_matches processing
     final_matches = pd.DataFrame(matched_results)
     if not final_matches.empty:
         final_matches.sort_values(
