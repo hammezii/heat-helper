@@ -46,13 +46,13 @@ def test_perform_exact_match_success(sample_data):
         heat_df=heat_df,
         left_join_cols=["Name", "DOB"],
         right_join_cols=["Full Name", "Birth Date"],
-        match_type_desc="Exact Name and DOB",
+        match_desc="Exact Name and DOB",
     )
 
     # Alice and Bob should match, Charlie should not
     assert len(matched) == 2
     assert len(unmatched) == 1
-    assert "Student HEAT ID" in matched.columns
+    assert "HEAT: Student HEAT ID" in matched.columns
     assert matched.iloc[0]["Match Type"] == "Exact Name and DOB"
     assert unmatched.iloc[0]["Name"] == "Charlie"
 
@@ -128,7 +128,7 @@ def test_perform_exact_match_custom_id_col(sample_data):
         "Custom ID",
         student_heat_id_col="Legacy ID",
     )
-    assert "Legacy ID" in matched.columns
+    assert "HEAT: Legacy ID" in matched.columns
 
 
 def test_perform_exact_match_missing_id_col(sample_data):
@@ -183,7 +183,6 @@ def test_successful_fuzzy_match(sample_unmatched, sample_heat):
         left_name_col="External_Name",
         right_name_col="Name",
         match_desc="DOB+PC Match",
-        heat_id_col="ID",
         threshold=80,
     )
 
@@ -276,7 +275,6 @@ def test_column_collision_warning(sample_unmatched, sample_heat, capsys):
         "External_Name",
         "Name",
         "T",
-        heat_id_col='ID'
     )
     captured = capsys.readouterr()
     assert "WARNING" in captured.out

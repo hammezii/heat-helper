@@ -123,12 +123,16 @@ def create_full_name(
     Args:
         first_name: First name.
         last_name: Last name.
-        middle_name (optional): Middle name. Defaults to a blank string.
+        middle_name (optional): Middle name. Defaults to a blank string or blank pd.Series.
 
     Returns:
         One string with all names joined.
     """
     if isinstance(first_name, pd.Series):
+        if isinstance(middle_name, str) and middle_name == "":
+            middle_name = pd.Series("", index=first_name.index)
+        if isinstance(middle_name, pd.Series):
+            middle_name = middle_name.fillna("")
         full_name_pd = first_name + " " + middle_name + " " + last_name
         full_name_pd = full_name_pd.str.replace(r"\s+", " ", regex=True).str.strip()
         return full_name_pd
