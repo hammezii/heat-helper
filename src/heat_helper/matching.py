@@ -115,7 +115,7 @@ def perform_exact_match(
         else:
             cols_list = unmatched_df.columns
             cols_list = list(cols_list)
-            cols_list.extend([student_heat_id_col, "Match Type"])
+            cols_list.extend(["Match Type", student_heat_id_col])
             final_matched = final_matched[cols_list]
             final_matched = final_matched.rename(columns={student_heat_id_col : f"HEAT: {student_heat_id_col}"})
             return final_matched, unmatched

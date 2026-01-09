@@ -31,6 +31,11 @@ from .matching import (
     perform_school_age_range_fuzzy_match,
 )
 
+from .updates import(
+    get_updates,
+    get_contextual_updates,
+)
+
 # Import *
 __all__ = [
     "calculate_dob_range_from_year_group",
@@ -47,7 +52,9 @@ __all__ = [
     "calculate_year_group_from_date",
     "perform_fuzzy_match",
     "perform_school_age_range_fuzzy_match",
+    "get_updates",
+    "get_contextual_updates"
 ]
 
 # Version constant
-__version__ = "0.1.0"
+__version__ = "0.1.3"
