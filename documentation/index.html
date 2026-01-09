@@ -609,6 +609,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../updates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../file-processing/" class="md-nav__link">
         
   
@@ -970,6 +998,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Updates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#heat_helper.updates.get_updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heat_helper.updates.get_contextual_updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get Contextual Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1298,6 +1365,45 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Updates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#heat_helper.updates.get_updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heat_helper.updates.get_contextual_updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get Contextual Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1502,7 +1608,7 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Middle name. Defaults to a blank string.</p>
+                <p>Middle name. Defaults to a blank string or blank pd.Series.</p>
               </div>
             </td>
             <td>
@@ -2854,7 +2960,7 @@ This is useful to create a matching waterfall where you move through different l
           </tr>
           <tr class="doc-section-item">
             <td>
-                <code>match_type_desc</code>
+                <code>match_desc</code>
             </td>
             <td>
                   <code><span title="str">str</span></code>
@@ -2977,7 +3083,7 @@ This is useful to create a matching waterfall where you move through different l
     <div class="doc doc-contents first">
 
         <p>This function allows you to fuzzy match names of students in an external dataset to your HEAT Student Export to retrieve HEAT Student IDs.
-You can control the potential pool of fuzzy matches by specifying filter columns in both DataFrames e.g. only look for fuzzy matches where Date of Birth matches.</p>
+You can control the potential pool of fuzzy matches by specifying filter columns in both DataFrames e.g. only look for fuzzy matches where Date of Birth and Postcode matches.</p>
 
 
 <p><span class="doc-section-title">Parameters:</span></p>
@@ -3101,22 +3207,6 @@ You can control the potential pool of fuzzy matches by specifying filter columns
             </td>
             <td>
                 <em>required</em>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                <code>heat_id_col</code>
-            </td>
-            <td>
-                  <code><span title="optional">optional</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>Column in heat_df which contains HEAT Student ID. Defaults to 'Student HEAT ID'.</p>
-              </div>
-            </td>
-            <td>
-                  <code><span title="heat_helper.core.STUDENT_HEAT_ID">STUDENT_HEAT_ID</span></code>
             </td>
           </tr>
           <tr class="doc-section-item">
@@ -3503,6 +3593,302 @@ Returns one dataframe of matches and one dataframe of remaining unmatched data.<
             <td>
               <div class="doc-md-description">
                 <p>Two DataFrames: first DataFrame is matched data, second is remaining data for onward matching.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div><h2 id="updates">Updates</h2>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="heat_helper.updates.get_updates" class="doc doc-heading">
+            Get Updates
+
+
+</h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Compares two DataFrame columns and returns a value if new_col is different to heat_col. 
+This can help you identify where new data is different to existing HEAT records and therefore needs updating.
+It returns a new column which only contains data that needs to be updated - so it can be copied to the HEAT import template.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>df</code>
+            </td>
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DataFrame where the columns are located.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>new_col</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The column which contains 'new' data. This would be the data you want to update on HEAT if it differs from values in heat_col.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>heat_col</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The corresponding column in your HEAT export e.g. if you are checking if any postcodes need updating, both new_col and heat_col should contain postcodes.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="TypeError">TypeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Raised if df is not a DataFrame or new_col and heat_col are not strings (text).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="heat_helper.exceptions.ColumnDoesNotExistError">ColumnDoesNotExistError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Raised if either new_col or heat_col are not in df columns.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="pandas.Series">Series</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A DataFrame column where rows contain the value from new_col if this is different to heat_col.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="heat_helper.updates.get_contextual_updates" class="doc doc-heading">
+            Get Contextual Updates
+
+
+</h3>
+
+
+    <div class="doc doc-contents first">
+
+        <p>This function is similar to get_updates, except you can also pass a list of 'bad' values you do not want to override HEAT data. 
+This can be useful if you want to ensure that data like 'Not available' or 'Unknown' does not overwrite previously collected 'good' values in the contextual data columns. </p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>df</code>
+            </td>
+            <td>
+                  <code><span title="pandas.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DataFrame where the columns are located.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>new_col</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The column which contains 'new' data. This would be the data you want to update on HEAT if it differs from values in heat_col.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>heat_col</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The corresponding column in your HEAT export e.g. if you are checking if any postcodes need updating, both new_col and heat_col should contain postcodes.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>bad_values</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A list of values which should not overwrite 'good' data in your HEAT records. For example, if your new data contains 'Not available' or 'Unknown' but your HEAT records had values in these columns, you could pass ['Not available', 'Unknown'] to this variable, and these will not overwrite 'good' values in the heat_col.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="TypeError">TypeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Raised if df is not a DataFrame, new_col and heat_col are not strings (text), or bad_values is not a list.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="heat_helper.exceptions.ColumnDoesNotExistError">ColumnDoesNotExistError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Raised if either new_col or heat_col are not in df columns.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="pandas.Series">Series</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A DataFrame column where rows contain the value from new_col if this is different to heat_col.</p>
               </div>
             </td>
           </tr>
