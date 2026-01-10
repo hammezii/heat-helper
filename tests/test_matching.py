@@ -97,6 +97,55 @@ def test_perform_exact_match_duplicates(sample_data, capsys):
 
 # --- ERROR HANDLING & BRANCHES ---
 
+def test_perform_exact_match_empty_unmatched_df(capsys):
+    """Tests the early exit clause when there are no students left to match."""
+    
+    # Setup: Empty unmatched_df with expected columns
+    unmatched_df = pd.DataFrame(columns=["First Name", "Last Name"])
+    
+    # heat_df can have data, but it won't be used
+    heat_df = pd.DataFrame({
+        "First Name": ["John"],
+        "Last Name": ["Doe"],
+        "Student HEAT ID": [12345]
+    })
+    
+    left_cols = ["First Name", "Last Name"]
+    right_cols = ["First Name", "Last Name"]
+    match_desc = "Name Match"
+
+    # Execute
+    matched, unmatched = perform_exact_match(
+        unmatched_df, 
+        heat_df, 
+        left_cols, 
+        right_cols, 
+        match_desc
+    )
+
+    # 1. Check Return Values
+    assert matched.empty
+    assert unmatched.empty
+    assert isinstance(matched, pd.DataFrame)
+    assert isinstance(unmatched, pd.DataFrame)
+
+    # 2. Check printed warning (using capsys fixture)
+    captured = capsys.readouterr()
+    expected_warning = f"WARNING: skipping match type: {match_desc} - no students left to match."
+    assert expected_warning in captured.out
+
+def test_perform_exact_match_empty_unmatched_df_preserves_columns(capsys):
+    """Verifies that the returned unmatched_df retains its column structure even if empty."""
+    
+    unmatched_df = pd.DataFrame(columns=["Name", "DOB"])
+    heat_df = pd.DataFrame({"Name": ["A"], "DOB": ["B"], "Student HEAT ID": [1]})
+    
+    _, unmatched = perform_exact_match(
+        unmatched_df, heat_df, ["Name"], ["Name"], "Test"
+    )
+    
+    # Ensure it didn't just return 'pd.DataFrame()' but the actual empty input df
+    assert list(unmatched.columns) == ["Name", "DOB"]
 
 def test_perform_exact_match_type_error():
     with pytest.raises(TypeError, match="must be pandas DataFrames"):
@@ -293,6 +342,76 @@ def test_nan_handling_in_keys(sample_heat):
     assert isinstance(matches, pd.DataFrame)
 
 
+@pytest.fixture
+def valid_dfs():
+    """Provides minimal valid DataFrames for fuzzy matching."""
+    unmatched = pd.DataFrame({
+        "Student_Name": ["Alice"],
+        "Postcode": ["ST1 1AA"]
+    })
+    heat = pd.DataFrame({
+        "HEAT_Name": ["Alice Smith"],
+        "HEAT_Postcode": ["ST1 1AA"]
+    })
+    return unmatched, heat
+
+def test_fuzzy_match_left_name_col_missing(valid_dfs):
+    """Tests ColumnDoesNotExistError when left_name_col is missing from unmatched_df."""
+    unmatched, heat = valid_dfs
+    
+    with pytest.raises(ColumnDoesNotExistError, match="'Wrong_Name' not found in unmatched_df"):
+        perform_fuzzy_match(
+            unmatched_df=unmatched,
+            heat_df=heat,
+            left_filter_cols=["Postcode"],
+            right_filter_cols=["HEAT_Postcode"],
+            left_name_col="Wrong_Name", # This column doesn't exist
+            right_name_col="HEAT_Name",
+            match_desc="Fuzzy Name Match"
+        )
+
+def test_fuzzy_match_right_name_col_missing(valid_dfs):
+    """Tests ColumnDoesNotExistError when right_name_col is missing from heat_df."""
+    unmatched, heat = valid_dfs
+    
+    with pytest.raises(ColumnDoesNotExistError, match="'Missing_HEAT_Col' not found in heat_df"):
+        perform_fuzzy_match(
+            unmatched_df=unmatched,
+            heat_df=heat,
+            left_filter_cols=["Postcode"],
+            right_filter_cols=["HEAT_Postcode"],
+            left_name_col="Student_Name",
+            right_name_col="Missing_HEAT_Col", # This column doesn't exist
+            match_desc="Fuzzy Name Match"
+        )
+
+def test_fuzzy_match_unmatched_empty(valid_dfs, capsys):
+    """Tests the early exit and warning when unmatched_df is empty."""
+    _, heat = valid_dfs
+    # Create an empty df with the correct columns
+    empty_unmatched = pd.DataFrame(columns=["Student_Name", "Postcode"])
+    
+    match_desc = "Fuzzy Name Match"
+    
+    matched, remaining = perform_fuzzy_match(
+        unmatched_df=empty_unmatched,
+        heat_df=heat,
+        left_filter_cols=["Postcode"],
+        right_filter_cols=["HEAT_Postcode"],
+        left_name_col="Student_Name",
+        right_name_col="HEAT_Name",
+        match_desc=match_desc
+    )
+    
+    # 1. Check Return Values
+    assert matched.empty
+    assert remaining.empty
+    assert isinstance(matched, pd.DataFrame)
+    
+    # 2. Check the Warning Message
+    captured = capsys.readouterr()
+    assert f"WARNING: skipping match type: {match_desc}" in captured.out
+
 # ---- FUZZY MATCHING SCHOOL DOB RANGE TESTE
 
 
@@ -423,13 +542,28 @@ def test_dob_conversion_failure(unmatched_data, heat_data):
         )
 
 
-def test_column_missing_errors(unmatched_data, heat_data):
-    with pytest.raises(ColumnDoesNotExistError):
+def test_column_missing_errors_unmatched(unmatched_data, heat_data):
+    with pytest.raises(ColumnDoesNotExistError, match="unmatched_df"):
         perform_school_age_range_fuzzy_match(
             unmatched_data,
             heat_data,
             "Missing",
             "HEAT_School",
+            "Name",
+            "HEAT_Name",
+            "YG",
+            "DOB",
+            "HEAT_ID",
+            "T",
+        )
+
+def test_column_missing_errors_heat(unmatched_data, heat_data):
+    with pytest.raises(ColumnDoesNotExistError, match="heat_df"):
+        perform_school_age_range_fuzzy_match(
+            unmatched_data,
+            heat_data,
+            "School",
+            "School",
             "Name",
             "HEAT_Name",
             "YG",

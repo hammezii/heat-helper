@@ -1,6 +1,5 @@
 # Import internal libraries
 import re
-import os
 from datetime import date
 
 # Import external libraries
@@ -18,19 +17,19 @@ def _calc_current_academic_year_start(date_now: date) -> int:
 
 
 # CONSTANTS
-#Used in clean year groups
+# Used in clean year groups
 RECEPTION_ALIASES = {"reception", "r", "year r", "rec", "year group r", "y0", "year 0"}
 
-#Used to validated postcode format
+# Used to validated postcode format
 POSTCODE_REGEX = r"^[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][A-Z]{2}$"
 
-#Used to calculate current academic year for year group / date maniuplation functions
+# Used to calculate current academic year for year group / date maniuplation functions
 CURRENT_ACADEMIC_YEAR_START = _calc_current_academic_year_start(date.today())
 
-#Used to remove punctuation except hyphens and apostrophes
+# Used to remove punctuation except hyphens and apostrophes
 PUNCTUATION = '!@#£$%^&*()_=+`~,.<>/?;:"|[]'
 
-#For matching functions
+# For matching functions
 STUDENT_HEAT_ID = "Student HEAT ID"
 
 
@@ -63,7 +62,8 @@ def _string_contains_int(string: str) -> bool:
         return False
     else:
         return True
-    
+
+
 def _is_valid_postcode(postcode: str) -> bool:
     """Checks if a string is a validly formatted UK postcode. Does not check a postcode exists.
     Matches formats: A9 9AA, A99 9AA, AA9 9AA, AA99 9AA, A9A 9AA, AA9A 9AA.
@@ -85,46 +85,13 @@ def _is_valid_postcode(postcode: str) -> bool:
     return bool(re.match(POSTCODE_REGEX, postcode))
 
 
-# Main functions for file manipulation
-def get_excel_filepaths_in_folder(
-    input_dir: str, print_to_terminal: bool = False
-) -> list[str]:
-    """Returns a list of filepaths to Excel files (with the extension .xlsx or .xls) in a given folder.
+def _to_snake(name: str) -> str:
+    # 1. Handle CamelCase (e.g., FirstName -> First_Name)
+    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name.strip())
+    s2 = re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1)
 
-    Args:
-        input_dir: The directory you want to get the filepaths from.
-        print_to_terminal (optional): Defaults to False. Set to True if you want the terminal to print messages about the file processing.
+    # 2. Remove special characters (keep only alphanumeric and spaces)
+    clean = re.sub(r"[^a-zA-Z0-9\s_]", "", s2)
 
-    Raises:
-        FileNotFoundError: Raises errors if the directory does not exist.
-
-    Returns:
-        List: A list of filepaths from the specified folder. Returns empty list if there are no Excel files in the folder.
-    """
-
-    # Helper function to control if messages are printed to terminal
-    def log(message: str):
-        if print_to_terminal:
-            print(message)
-
-    # Checks directory exists before function starts
-    if not os.path.exists(input_dir):
-        raise FileNotFoundError(f"The directory '{input_dir}' does not exist.")
-
-    log(f"\nDiscovering files in '{input_dir}'")
-    excel_files = 0
-    filepaths = []  # empty list the filepaths will be added to
-    # Iterate over all files in the given folder
-    for filename in os.listdir(input_dir):  # for each file in the folder
-        file_path = os.path.join(input_dir, filename)  # create the filepath
-        # Check if it's an actual file and an Excel file
-        if os.path.isfile(file_path) and filename.lower().endswith((".xlsx", ".xls")):
-            excel_files += 1
-            filepaths.append(file_path)  # add each filepath to the filepaths list
-            log(f"  Found Excel file: {filename} and added to processing list.")
-        else:
-            log(f"  Skipping non-Excel file: {filename}")
-    if not filepaths:
-        log("No Excel files found to process.")
-        return []
-    return filepaths
+    # 3. Collapse whitespace, lower, and underscore
+    return re.sub(r"[_\s]+", "_", clean.strip()).lower()

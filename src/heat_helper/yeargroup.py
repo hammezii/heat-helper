@@ -1,4 +1,4 @@
-#Internal python libraries
+# Internal python libraries
 from datetime import date
 
 # Import helper functions
@@ -29,6 +29,7 @@ def clean_year_group(year_group: str | int, errors: str = "raise") -> str | None
         if errors == "coerce":
             return None
         raise
+
 
 def calculate_year_group_from_date(
     input_date: date,

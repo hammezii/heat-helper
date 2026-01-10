@@ -61,3 +61,12 @@ class FilterColumnMismatchError(HeatHelperError):
         self.value = value
         self.message = f"Filter columns do not match: {value}"
         super().__init__(self.message)
+
+
+class ColumnsNotUnique(HeatHelperError):
+    """Raised when dataframe used for fuzzy matching does not have a unique index (which would compromise returned results.)."""
+
+    def __init__(self, value: Any):
+        self.value = value
+        self.message = f"Column names are not unique: {value}"
+        super().__init__(self.message)

@@ -59,7 +59,9 @@ def perform_exact_match(
         )
 
     if unmatched_df.empty:
-        print(f"WARNING: skipping match type: {match_desc} - no students left to match.")
+        print(
+            f"WARNING: skipping match type: {match_desc} - no students left to match."
+        )
         return pd.DataFrame(), unmatched_df
     else:
         # For performance, heat_df should just be columns required for match + heat ID
@@ -84,7 +86,9 @@ def perform_exact_match(
         final_matched["Match Type"] = match_desc
 
         unmatched = (
-            joined_df[joined_df[student_heat_id_col].isnull()].copy().reset_index(drop=True)
+            joined_df[joined_df[student_heat_id_col].isnull()]
+            .copy()
+            .reset_index(drop=True)
         )
         unmatched = unmatched[unmatched_df.columns]
 
@@ -104,20 +108,26 @@ def perform_exact_match(
 
         if verify:
             rename_dict = {
-                col: f"HEAT: {col}" for col in heat_df.columns if col != student_heat_id_col
+                col: f"HEAT: {col}"
+                for col in heat_df.columns
+                if col != student_heat_id_col
             }
             heat_df_verif = heat_df.rename(columns=rename_dict)
             final_matched_check = pd.merge(
                 final_matched, heat_df_verif, how="left", on=student_heat_id_col
             )
-            final_matched_check = final_matched_check.rename(columns={student_heat_id_col : f"HEAT: {student_heat_id_col}"})
+            final_matched_check = final_matched_check.rename(
+                columns={student_heat_id_col: f"HEAT: {student_heat_id_col}"}
+            )
             return final_matched_check, unmatched
         else:
             cols_list = unmatched_df.columns
             cols_list = list(cols_list)
             cols_list.extend(["Match Type", student_heat_id_col])
             final_matched = final_matched[cols_list]
-            final_matched = final_matched.rename(columns={student_heat_id_col : f"HEAT: {student_heat_id_col}"})
+            final_matched = final_matched.rename(
+                columns={student_heat_id_col: f"HEAT: {student_heat_id_col}"}
+            )
             return final_matched, unmatched
 
 
@@ -187,11 +197,14 @@ def perform_fuzzy_match(
         )
 
     if unmatched_df.empty:
-        print(f"WARNING: skipping match type: {match_desc} - no students left to match.")
+        print(
+            f"WARNING: skipping match type: {match_desc} - no students left to match."
+        )
         return pd.DataFrame(), unmatched_df
     else:
-
-        print(f"     Attempting to match {len(unmatched_df)} students. Fuzzy match type: {match_desc}.")
+        print(
+            f"     Attempting to match {len(unmatched_df)} students. Fuzzy match type: {match_desc}."
+        )
 
         # Create copies in case slice passed to function
         unmatched_df = unmatched_df.copy()
@@ -205,7 +218,9 @@ def perform_fuzzy_match(
         # Go through each row in unmatched data
         for idx, row in unmatched_df.iterrows():
             search_values = row[left_filter_cols].tolist()
-            search_key = tuple(search_values) if len(search_values) > 1 else search_values[0]
+            search_key = (
+                tuple(search_values) if len(search_values) > 1 else search_values[0]
+            )
 
             # Does this block exist in the Heat data?
             if search_key in grouped_heat:
@@ -252,7 +267,7 @@ def perform_fuzzy_match(
         else:
             matched_indices = []
             print("     ...0 students found in HEAT data.")
-        
+
         # Identify who is still missing
         remaining_unmatched = unmatched_df.drop(matched_indices)
         print(f"     ...{len(remaining_unmatched)} students left to find.")

@@ -13,7 +13,7 @@ Preparing CSV or Excel files for HEAT often involves repetitive tasks like clean
 - Date related functions including reversing day/month, calculating a year group from date of birth, and calculating a date of birth range from year group
 - Year group normalisation and cleaning to a standard format 'Year X'
 - Postcode normalisation and format validation
-- Student matching from one dataset to your HEAT data, including exact matches on multiple columns (e.g. name, date of birth, and postcode), fuzzy name matching where other variables match (i.e. where date of birth and postcode match).
+- Student matching from one dataset to your HEAT data, including exact matches on multiple columns (e.g. name, date of birth, and postcode), fuzzy name matching where other variables match (i.e. where date of birth and postcode match), and fuzzy matching where date of birth is in the right year group and another variable such as school matches.
 
 Common use cases for `heat_helper` include:
 
@@ -22,7 +22,7 @@ Common use cases for `heat_helper` include:
 - Bulk matching students from your activities to their records on HEAT, so you can use their IDs to bulk register student records to activity records within HEAT
 
 ## Installation
-You can install `heat_helper` from GitHub. I recommend [uv](https://docs.astral.sh/uv/) for easy package management.
+You can install `heat_helper` from GitHub if you have [git](https://git-scm.com/) installed on your system. I recommend [uv](https://docs.astral.sh/uv/) for easy package management.
 
 ### with pip
 You can install `heat_helper` with `pip` by typing the following into your terminal:
@@ -39,9 +39,12 @@ uv add git+https://github.com/hammezii/heat-helper.git
 ```
 
 ## Dependencies
-`heat_helper` assumes that if you're using python to process your HEAT data you probably already have common data packages like `pandas` installed. The following are required:
+`heat_helper` assumes that if you're using python to process your HEAT data you probably already have common data packages like `pandas` installed. The following are required and will be installed along with `heat_helper`:
 
-- pandas >= 2.3.3
+- pandas
+- rapidfuzz
+- openpyxl
+- click
 
 ## Documentation
 You can access the documentation **[here](https://hammezii.github.io/heat-helper/)**.

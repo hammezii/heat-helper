@@ -41,7 +41,7 @@ def format_name(text: str, errors: str = "raise") -> str | None:
         )
         return working_text
     except TypeError:
-        if errors == 'ignore':
+        if errors == "ignore":
             return text
         if errors == "coerce":
             return None
@@ -171,7 +171,9 @@ def remove_diacritics(input_text: str, errors: str = "raise") -> str | None:
         raise
 
 
-def remove_punctuation(text: str, punctuation: str = PUNCTUATION, errors: str = 'raise') -> str | None:
+def remove_punctuation(
+    text: str, punctuation: str = PUNCTUATION, errors: str = "raise"
+) -> str | None:
     """Removes all punctuation except for hyphens and apostrophes from text. Useful for cleaning names.
 
     Args:

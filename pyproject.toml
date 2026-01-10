@@ -4,12 +4,14 @@ description = "A python library to help users of the Higher Education Access Tra
 authors = [
     {name = "Hannah Merry"}
 ]
-version = "0.1.3"
+version = "0.1.4"
 license = "GPL-3.0"
 license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "click>=8.3.1",
+    "openpyxl>=3.1.5",
     "pandas>=2.3.3",
     "rapidfuzz>=3.14.3",
 ]
@@ -29,3 +31,6 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
 ]
+
+[project.scripts]
+heat_helper = "heat_helper.cli:main"

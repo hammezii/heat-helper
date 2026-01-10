@@ -39,7 +39,6 @@ def reverse_date(input_date: date, errors: str = "raise") -> date:
         raise
 
 
-
 def calculate_dob_range_from_year_group(
     year_group: str | int,
     start_year: int = CURRENT_ACADEMIC_YEAR_START,

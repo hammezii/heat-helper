@@ -1,7 +1,6 @@
 # Import utils
-from .core import (
-    get_excel_filepaths_in_folder,
-)
+
+from .utils import get_excel_filepaths_in_folder, convert_col_snake_case
 
 from .names import (
     format_name,
@@ -11,10 +10,7 @@ from .names import (
     remove_diacritics,
 )
 
-from .dates import (
-    reverse_date,
-    calculate_dob_range_from_year_group
-)
+from .dates import reverse_date, calculate_dob_range_from_year_group
 
 from .postcode import (
     format_postcode,
@@ -31,7 +27,7 @@ from .matching import (
     perform_school_age_range_fuzzy_match,
 )
 
-from .updates import(
+from .updates import (
     get_updates,
     get_contextual_updates,
 )
@@ -53,7 +49,8 @@ __all__ = [
     "perform_fuzzy_match",
     "perform_school_age_range_fuzzy_match",
     "get_updates",
-    "get_contextual_updates"
+    "get_contextual_updates",
+    "convert_col_snake_case",
 ]
 
 # Version constant
