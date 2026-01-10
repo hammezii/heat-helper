@@ -93,3 +93,106 @@ def test_describe_duplicate_headers(runner, tmp_path):
     assert result.exit_code == 0
     assert "CRITICAL: Duplicate headers in raw file" in result.output
     assert "ID" in result.output
+
+# TESTS FOR CLEAN
+
+def test_clean_csv_logic_and_whitespace(runner, tmp_path):
+    """Hits CSV branch and whitespace cleaning loop."""
+    df = pd.DataFrame({
+        "TextCol": ["  leading  ", "middle    spaces", "trailing  "]
+    })
+    file_path = tmp_path / "dirty.csv"
+    df.to_csv(file_path, index=False)
+    
+    result = runner.invoke(main, ["clean", str(file_path)])
+    
+    assert result.exit_code == 0
+    df_clean = pd.read_csv(tmp_path / "dirty_CLEAN.csv")
+    assert df_clean["TextCol"][0] == "leading"
+    assert df_clean["TextCol"][1] == "middle spaces"
+
+def test_clean_excel_and_float_to_int(runner, tmp_path):
+    """Hits Excel branch and float-to-int conversion logic."""
+    df = pd.DataFrame({
+        "IDs": [1.0, 2.0, 3.0, None], # Floats that are actually ints
+        "Prices": [10.50, 20.99, 30.00, 5.0] # Mixed floats (logic should ignore these)
+    })
+    file_path = tmp_path / "test.xlsx"
+    df.to_excel(file_path, index=False)
+    
+    result = runner.invoke(main, ["clean", str(file_path)])
+    
+    assert result.exit_code == 0
+    # Note: Your current code saves Excel as .csv extension
+    df_clean = pd.read_csv(tmp_path / "test_CLEAN.csv") 
+    
+    # IDs should be Int64, Prices remain floats
+    inferred_int = df_clean["IDs"].dropna()
+    assert (inferred_int % 1 == 0).all()
+
+    # Alternatively, check the actual string output in the CSV 
+    # to ensure it's "1" and not "1.0"
+    with open(tmp_path / "test_CLEAN.csv", "r") as f: # Your code saves as .xlsx but content is CSV
+        content = f.read()
+        assert "1.0" not in content
+        assert "1," in content or "1\n" in content
+
+def test_clean_with_outdir(runner, tmp_path):
+    """Hits the outdir branch."""
+    df = pd.DataFrame({"a": [1]})
+    file_path = tmp_path / "data.csv"
+    df.to_csv(file_path, index=False)
+    
+    out_dir = tmp_path / "cleaned_output"
+    os.mkdir(out_dir)
+    
+    result = runner.invoke(main, ["clean", str(file_path), "--outdir", str(out_dir)])
+    
+    assert result.exit_code == 0
+    assert os.path.exists(out_dir / "data_CLEAN.csv")
+
+def test_clean_options_headers_name_postcode(runner, tmp_path):
+    # Use a very simple filename
+    file_path = tmp_path / "test.csv"
+    df = pd.DataFrame({
+        "Full Name": ["Jöhn Doe!"],
+        "Post Code": ["sw1a 1aa"]
+    })
+    df.to_csv(file_path, index=False)
+    
+    result = runner.invoke(main, [
+        "clean", 
+        str(file_path),
+        "--headers",
+        "--name", "Full Name",
+        "--postcode", "Post Code"
+    ])
+    
+    # If this fails, the output will tell us the KeyError or FileNotFoundError
+    assert result.exit_code == 0, f"CLI failed with: {result.output}"
+    
+    # Match your CLI's naming logic: root + _CLEAN + ext
+    expected_name = "test_CLEAN.csv"
+    expected_path = tmp_path / expected_name
+    
+    assert expected_path.exists(), f"CLI Output was: {result.output}"
+    
+    df_clean = pd.read_csv(expected_path)
+    assert "full_name" in df_clean.columns
+
+def test_clean_unsupported_format(runner, tmp_path):
+    """Hits the 'Unsupported format' return branch."""
+    file_path = tmp_path / "test.txt"
+    file_path.write_text("not a csv")
+    
+    result = runner.invoke(main, ["clean", str(file_path)])
+    assert "Unsupported format" in result.output
+
+def test_clean_exception_handler(runner, tmp_path):
+    """Hits the 'except Exception' block."""
+    # Create a directory named file.csv - pandas will crash trying to read it
+    bad_file = tmp_path / "crash.csv"
+    os.mkdir(bad_file)
+    
+    result = runner.invoke(main, ["clean", str(bad_file)])
+    assert "Error during cleaning" in result.output

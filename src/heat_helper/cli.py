@@ -157,7 +157,7 @@ def clean(file_name, outdir, headers, name, postcode):
             base_name = os.path.basename(file_root)
             output_path = os.path.join(outdir, f"{base_name}_CLEAN{extension}")
         else:
-            output_path = f"{file_root}_CLEAN{extension}"
+            output_path = f"{file_root}_CLEAN.csv"
 
         # 2. Load the data
         if extension.lower() == '.csv':
@@ -195,16 +195,16 @@ def clean(file_name, outdir, headers, name, postcode):
                 df[col] = df[col].astype('Int64')
                 click.secho(f"... Converted '{col}' from float to integer (no decimal data found)", fg="yellow")
         
+        if postcode:
+            # Attempt postcode cleaning
+            df[postcode] = df[postcode].apply(format_postcode, errors='ignore')
+            click.secho("... Postcodes formatted", fg="yellow")
+        
         if headers:
             # Convert to snake_case
             new_cols = [_to_snake(c) for c in df.columns]
             df.columns = new_cols
             click.secho("... Headers converted to snake_case", fg="yellow")
-
-        if postcode:
-            # Attempt postcode cleaning
-            df[postcode] = df[postcode].apply(format_postcode, errors='ignore')
-            click.secho("... Postcodes formatted", fg="yellow")
 
         # 4. Save the file
         df.to_csv(output_path, index=False)
