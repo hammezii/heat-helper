@@ -14,7 +14,7 @@ def convert_col_snake_case(df: pd.DataFrame) -> pd.DataFrame:
 
     if len(set(columns)) != len(columns):
         duplicates = set([x for x in columns if columns.count(x) > 1])
-        raise ColumnsNotUnique(f"DataFrame does has duplicate columns: {duplicates}")
+        raise ColumnsNotUnique(f"DataFrame has duplicate columns: {duplicates}")
 
     new_df = df.copy()
     new_cols = [_to_snake(c) for c in new_df.columns]
