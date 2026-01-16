@@ -1,5 +1,5 @@
 [project]
-name = "heat-helper"
+name = "heat_helper"
 description = "A python library to help users of the Higher Education Access Tracker (HEAT) process their data."
 authors = [
     {name = "Hannah Merry"}

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/heat-helper
+      url: https://pypi.org/p/heat_helper
     permissions:
       # This permission is REQUIRED for Trusted Publishing
       id-token: write
