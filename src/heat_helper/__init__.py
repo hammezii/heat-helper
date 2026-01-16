@@ -1,16 +1,23 @@
 # Import utils
 
-from .utils import get_excel_filepaths_in_folder, convert_col_snake_case
+from .utils import (
+    get_excel_filepaths_in_folder, 
+    convert_col_snake_case
+)
 
 from .names import (
     format_name,
     find_numbers_in_text,
-    remove_numbers_from_text,
+    remove_numbers,
     create_full_name,
     remove_diacritics,
+    remove_punctuation,
 )
 
-from .dates import reverse_date, calculate_dob_range_from_year_group
+from .dates import (
+    reverse_date, 
+    calculate_dob_range_from_year_group
+)
 
 from .postcode import (
     format_postcode,
@@ -32,6 +39,10 @@ from .updates import (
     get_contextual_updates,
 )
 
+from .duplicates import (
+    find_duplicates,
+)
+
 # Import *
 __all__ = [
     "calculate_dob_range_from_year_group",
@@ -40,7 +51,7 @@ __all__ = [
     "get_excel_filepaths_in_folder",
     "format_name",
     "find_numbers_in_text",
-    "remove_numbers_from_text",
+    "remove_numbers",
     "reverse_date",
     "create_full_name",
     "remove_diacritics",
@@ -51,7 +62,9 @@ __all__ = [
     "get_updates",
     "get_contextual_updates",
     "convert_col_snake_case",
+    "find_duplicates",
+    "remove_punctuation"
 ]
 
 # Version constant
-__version__ = "0.1.3"
+__version__ = "0.1.4"

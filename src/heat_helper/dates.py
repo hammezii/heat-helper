@@ -6,7 +6,7 @@ import pandas as pd
 
 # Import helper functions
 from heat_helper.core import _parse_year_group_to_int, CURRENT_ACADEMIC_YEAR_START
-from heat_helper.exceptions import InvalidYearGroupError
+from heat_helper.exceptions import InvalidYearGroupError, FELevelError
 
 
 def reverse_date(input_date: date, errors: str = "raise") -> date:
@@ -40,12 +40,12 @@ def reverse_date(input_date: date, errors: str = "raise") -> date:
 
 
 def calculate_dob_range_from_year_group(
-    year_group: str | int,
+    year_group: str | int | pd.Series,
     start_year: int = CURRENT_ACADEMIC_YEAR_START,
     errors: str = "raise",
-) -> tuple[date | None, date | None]:
+) -> tuple[date | None, date | None] | tuple[pd.Series, pd.Series]:
     """Calculates the expected DOB range (Sep 1 to Aug 31) for a given year group (1 to 13) in England.
-    Include some logic to try to handle Reception if entered as 'Reception', 'R', or 'Year R'.
+    Includes some logic to try to handle Reception if entered as 'Reception', 'R', or 'Year R'.
 
     Args:
         year_group: The year group you want to find the date of birth range for. Examples: 'Year 10', 'Y10', 10. Note: Reception should be entered as Reception, Year R or R.
@@ -53,16 +53,31 @@ def calculate_dob_range_from_year_group(
         errors (optional): default = 'raise' which raises all errors. 'ignore' and 'coerce' returns None, None.
 
     Raises:
-        InvalidYearGroupError: Raised when the year group input cannot be parsed or is out of range.
-        SchoolYearError: Raised when start_year is not a valid int.
+        InvalidYearGroupError: Raised when `year_group` input cannot be parsed or is out of range.
+        SchoolYearError: Raised when `start_year` is not a valid int.
+        FELevelError: Raised if FE Levels are in `year_group`.
 
     Returns:
         The date of birth range. First date is start of the academic year; second date is the end of the academic year. Example: 01/09/2013, 31/08/2014."""
+    
     try:
+        # Dataframe
+        if isinstance(year_group, pd.Series):
+            results = year_group.apply(
+                calculate_dob_range_from_year_group, 
+                start_year=start_year, 
+                errors=errors
+            )
+            
+            start_dates, end_dates = zip(*results)
+            return (pd.Series(start_dates, index=year_group.index), 
+                    pd.Series(end_dates, index=year_group.index))
+
+        # Individual values
         y_num = _parse_year_group_to_int(year_group)
         dob_start_year = int(start_year) - (y_num + 5)
         return date(dob_start_year, 9, 1), date(dob_start_year + 1, 8, 31)
-    except (InvalidYearGroupError, TypeError, ValueError):
+    except (InvalidYearGroupError, TypeError, ValueError, FELevelError):
         if errors == "coerce":
             return None, None
         if errors == "ignore":

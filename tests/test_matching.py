@@ -175,7 +175,7 @@ def test_perform_exact_match_custom_id_col(sample_data):
         ["Name"],
         ["Full Name"],
         "Custom ID",
-        student_heat_id_col="Legacy ID",
+        heat_id_col="Legacy ID",
     )
     assert "HEAT: Legacy ID" in matched.columns
 
@@ -189,7 +189,7 @@ def test_perform_exact_match_missing_id_col(sample_data):
             ["Name"],
             ["Full Name"],
             "test",
-            student_heat_id_col="Wrong ID",
+            heat_id_col="Wrong ID",
         )
 
 

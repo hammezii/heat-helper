@@ -17,7 +17,7 @@ def perform_exact_match(
     right_join_cols: list[str],
     match_desc: str,
     verify: bool = False,
-    student_heat_id_col: str = STUDENT_HEAT_ID,
+    heat_id_col: str = STUDENT_HEAT_ID,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Performs an exact match on specified columns between new data and your HEAT Student export and returns the HEAT Student ID if a match is found.
     This function returns two DataFrames: one containing the matches and one containing unmatched students, for passing to another matching function.
@@ -31,7 +31,7 @@ def perform_exact_match(
         right_join_cols: Columns in heat_df you want to match on.
         match_desc: A description of the match; added to a 'Match Type' col in the returned matched DataFrame. Should be descriptive to help you verify matches later, especially if joining multiple returns of this function and exporting to a .csv or Excel file.
         verify (optional): Defaults to False. Controls whether to return all columns from heat_df to the matched DataFrame for verifying of matches. Useful if you are performing a less exact match and you want to verify the returned students. Also useful if you are using this function or perform_fuzzy_match function and want to join results together (column structure will be the same).
-        student_heat_id_col (optional): Defaults to 'Student HEAT ID'. Use this if the column in your HEAT Export with the Student ID in is not called 'Student HEAT ID'.
+        heat_id_col (optional): Defaults to 'Student HEAT ID'. Use this if the column in your HEAT Export with the Student ID in is not called 'Student HEAT ID'.
 
     Raises:
         TypeError: Raised if new_df or heat_df are not pandas DataFrames.
@@ -53,9 +53,9 @@ def perform_exact_match(
     for col in right_join_cols:
         if col not in heat_df.columns:
             raise ColumnDoesNotExistError(f"'{col}' not found in heat_df")
-    if student_heat_id_col not in heat_df.columns:
+    if heat_id_col not in heat_df.columns:
         raise ColumnDoesNotExistError(
-            f"Specified ID column '{student_heat_id_col}' not found in heat_df."
+            f"Specified ID column '{heat_id_col}' not found in heat_df."
         )
 
     if unmatched_df.empty:
@@ -66,7 +66,7 @@ def perform_exact_match(
     else:
         # For performance, heat_df should just be columns required for match + heat ID
         heat_cols = list(right_join_cols)
-        heat_cols_list = heat_cols + [student_heat_id_col]
+        heat_cols_list = heat_cols + [heat_id_col]
         heat_df_slim = heat_df[heat_cols_list]
 
         # Initial slim merge using only data req. for match
@@ -81,12 +81,12 @@ def perform_exact_match(
 
         # Separate matches and non-matches
         final_matched = (
-            joined_df.dropna(subset=[student_heat_id_col]).copy().reset_index(drop=True)
+            joined_df.dropna(subset=[heat_id_col]).copy().reset_index(drop=True)
         )
         final_matched["Match Type"] = match_desc
 
         unmatched = (
-            joined_df[joined_df[student_heat_id_col].isnull()]
+            joined_df[joined_df[heat_id_col].isnull()]
             .copy()
             .reset_index(drop=True)
         )
@@ -110,23 +110,23 @@ def perform_exact_match(
             rename_dict = {
                 col: f"HEAT: {col}"
                 for col in heat_df.columns
-                if col != student_heat_id_col
+                if col != heat_id_col
             }
             heat_df_verif = heat_df.rename(columns=rename_dict)
             final_matched_check = pd.merge(
-                final_matched, heat_df_verif, how="left", on=student_heat_id_col
+                final_matched, heat_df_verif, how="left", on=heat_id_col
             )
             final_matched_check = final_matched_check.rename(
-                columns={student_heat_id_col: f"HEAT: {student_heat_id_col}"}
+                columns={heat_id_col: f"HEAT: {heat_id_col}"}
             )
             return final_matched_check, unmatched
         else:
             cols_list = unmatched_df.columns
             cols_list = list(cols_list)
-            cols_list.extend(["Match Type", student_heat_id_col])
+            cols_list.extend(["Match Type", heat_id_col])
             final_matched = final_matched[cols_list]
             final_matched = final_matched.rename(
-                columns={student_heat_id_col: f"HEAT: {student_heat_id_col}"}
+                columns={heat_id_col: f"HEAT: {heat_id_col}"}
             )
             return final_matched, unmatched
 

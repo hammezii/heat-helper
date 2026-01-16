@@ -7,6 +7,19 @@ from .core import _to_snake
 
 # Utility Functions
 def convert_col_snake_case(df: pd.DataFrame) -> pd.DataFrame:
+    """_summary_
+
+    Args:
+        df (pd.DataFrame): _description_
+
+    Raises:
+        TypeError: _description_
+        ColumnsNotUnique: _description_
+        ColumnsNotUnique: _description_
+
+    Returns:
+        pd.DataFrame: _description_
+    """
     if not isinstance(df, pd.DataFrame):
         raise TypeError(f"df must be a DataFrame, not {type(df).__name__}")
 

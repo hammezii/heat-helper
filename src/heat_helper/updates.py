@@ -29,7 +29,7 @@ def get_updates(df: pd.DataFrame, new_col: str, heat_col: str) -> pd.Series:
 
     for col in [new_col, heat_col]:
         if col not in df.columns:
-            raise ColumnDoesNotExistError(f"'{col}' not found in {df} column list.")
+            raise ColumnDoesNotExistError(f"'{col}' not found in DataFrame column list.")
 
     left = df[new_col]
     right = df[heat_col]
@@ -43,8 +43,10 @@ def get_updates(df: pd.DataFrame, new_col: str, heat_col: str) -> pd.Series:
     # Standard equality check that handles nulls
     condition = ~(left.eq(right) | (left.isna() & right.isna()))
 
-    # Return updated data if True, otherwise return null
-    update_col = df[new_col].where(condition, other=pd.NA)  # type: ignore
+    # Fill blank strings with None, then return updated data if True, otherwise return null
+    if left.dtype == 'object':
+        df[new_col] = df[new_col].fillna('').replace(r"^\s*$", None, regex=True)
+    update_col = df[new_col].where(condition, other=None)  # type: ignore
 
     return update_col
 
@@ -96,6 +98,8 @@ def get_contextual_updates(
     is_different = ~(left.eq(right) | (left.isna() & right.isna()))
     condition = is_different & left_good
 
-    update_col = df[new_col].where(condition, other=pd.NA)  # type: ignore
+    if left.dtype == 'object':
+        df[new_col] = df[new_col].fillna('').replace(r"^\s*$", None, regex=True)
+    update_col = df[new_col].where(condition, other=None)  # type: ignore
 
     return update_col

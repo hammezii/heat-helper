@@ -1,6 +1,7 @@
 # Import internal libraries
 import re
 from datetime import date
+import pandas as pd
 
 # Import external libraries
 
@@ -27,15 +28,17 @@ POSTCODE_REGEX = r"^[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][A-Z]{2}$"
 CURRENT_ACADEMIC_YEAR_START = _calc_current_academic_year_start(date.today())
 
 # Used to remove punctuation except hyphens and apostrophes
-PUNCTUATION = '!@#£$%^&*()_=+`~,.<>/?;:"|[]'
+PUNCTUATION = '!@#£$%^&*()_=+`~,.<>/?;:"\\|[]'
 
 # For matching functions
 STUDENT_HEAT_ID = "Student HEAT ID"
 
 
 # Helper functions for main functions
-def _parse_year_group_to_int(year_group: str | int) -> int:
+def _parse_year_group_to_int(year_group: str | int | pd.Series) -> int:
     """Internal helper to convert any year group input to an integer (0-13)."""
+    if isinstance(year_group, pd.Series):
+        return year_group.apply(_parse_year_group_to_int)
     if isinstance(year_group, str):
         if "level" in year_group.lower():
             raise FELevelError(year_group)

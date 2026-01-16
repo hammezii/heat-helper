@@ -9,17 +9,20 @@ Preparing CSV or Excel files for HEAT often involves repetitive tasks like clean
 ## Features
 `heat_helper` provides functions to support many common tasks:
 
-- Cleaning and normalising student names including removing numbers, converting diacritics, cleaning extra whitespaces, and casing.
-- Date related functions including reversing day/month, calculating a year group from date of birth, and calculating a date of birth range from year group
-- Year group normalisation and cleaning to a standard format 'Year X'
-- Postcode normalisation and format validation
-- Student matching from one dataset to your HEAT data, including exact matches on multiple columns (e.g. name, date of birth, and postcode), fuzzy name matching where other variables match (i.e. where date of birth and postcode match), and fuzzy matching where date of birth is in the right year group and another variable such as school matches.
+- **Text Cleaning**: simple functions to normalise names (including removing numbers, converting diacritics to plain text, removing punctuation except for hyphens and apostrophes, cleaning extra white spaces, and casing), postcodes, and year groups.
+- **Working with Dates**: reverse day/month in a date, calculate a year group from date of birth, or calculate a date of birth range from year group
+- **Student Matching**: exact and fuzzy match students from external sources (e.g. registers) to your HEAT Students export to get their ID numbers for activity linking.
+- **Data Validation**: check dates of birth are in the right age range for a given year group, or check postcodes are in a UK format.
+- **Bulk processing**: get lists of Excel files in folders so you can process lots of files at once.
+- **Duplicates**: find potential duplicates in a dataset based on name, date of birth and postcode.
+- **Compatibility**: built for use with `pandas` for handling your data.
 
+## What can I use heat_helper for?
 Common use cases for `heat_helper` include:
 
 - Cleaning new data to be uploaded to the HEAT database
 - Checking if 'new' students already have records in HEAT
-- Bulk matching students from your activities to their records on HEAT, so you can use their IDs to bulk register student records to activity records within HEAT
+- Matching students from your activities to their records on HEAT, so you can use their IDs to bulk register student records to activity records within HEAT
 
 ## Installation
 You can install `heat_helper` from GitHub if you have [git](https://git-scm.com/) installed on your system. I recommend [uv](https://docs.astral.sh/uv/) for easy package management.
@@ -39,12 +42,13 @@ uv add git+https://github.com/hammezii/heat-helper.git
 ```
 
 ## Dependencies
-`heat_helper` assumes that if you're using python to process your HEAT data you probably already have common data packages like `pandas` installed. The following are required and will be installed along with `heat_helper`:
+`heat_helper` has the following dependencies which will also be installed:
 
-- pandas
-- rapidfuzz
-- openpyxl
-- click
+- [`pandas`](https://pandas.pydata.org/) - for DataFrames and dealing with spreadsheet data
+- [`rapidfuzz`](https://rapidfuzz.github.io/RapidFuzz/) - for fuzzy matching
+- [`openpyxl`](https://openpyxl.readthedocs.io/en/stable/) - for processing Excel files
+
+This means that in a new environment you can simply install `heat_helper` and have a complete setup for processing and manipulating CSV or Excel files.
 
 ## Documentation
 You can access the documentation **[here](https://hammezii.github.io/heat-helper/)**.

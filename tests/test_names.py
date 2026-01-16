@@ -3,7 +3,7 @@ import pandas as pd
 from heat_helper.names import (
     format_name,
     find_numbers_in_text,
-    remove_numbers_from_text,
+    remove_numbers,
     remove_diacritics,
     create_full_name,
     remove_punctuation
@@ -77,7 +77,7 @@ def test_find_numbers_convert():
 def test_find_numbers_ignore():
     assert (
         find_numbers_in_text(123, errors="ignore")
-        == "Input not string: result unknown."
+        == 123
     )
 
 
@@ -91,17 +91,17 @@ def test_remove_numbers_error():
     with pytest.raises(
         TypeError, match=f"Text must be a string, not {type(12).__name__}"
     ):
-        remove_numbers_from_text(12)
+        remove_numbers(12)
 
 
 def test_remove_numbers_convert():
-    assert remove_numbers_from_text(12, convert_to_string=True) == ""
+    assert remove_numbers(12, convert_to_string=True) == ""
 
 
 def test_remove_numbers_ignore_errors():
     assert (
-        remove_numbers_from_text(12, errors="ignore")
-        == "Input not string: can't remove numbers."
+        remove_numbers(12, errors="ignore")
+        == 12
     )
 
 
@@ -115,12 +115,12 @@ def test_remove_numbers_ignore_errors():
     ],
 )
 def test_remove_numbers(num_name, remove_num_name):
-    assert remove_numbers_from_text(num_name) == remove_num_name
+    assert remove_numbers(num_name) == remove_num_name
 
 
 def test_remove_numbers_coerce():
     # Trigger the 'coerce' block in the except TypeError clause
-    assert remove_numbers_from_text(123, errors="coerce") == None
+    assert remove_numbers(123, errors="coerce") == None
 
 
 # DIACRITICS

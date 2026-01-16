@@ -6,7 +6,7 @@ import unicodedata
 import pandas as pd
 
 # Import helper functions
-from heat_helper.core import _string_contains_int, PUNCTUATION
+from .core import _string_contains_int, PUNCTUATION
 
 
 def format_name(text: str, errors: str = "raise") -> str | None:
@@ -14,7 +14,7 @@ def format_name(text: str, errors: str = "raise") -> str | None:
 
     Args:
         text: The name you wish to clean.
-        errors (optional): default = 'raise' which raises all errors. 'ignore' ignores errors and returns original value, 'coerce' returns None.
+        errors (optional): Default = 'raise' which raises all errors. 'ignore' ignores errors and returns original value, 'coerce' returns None.
 
     Raises:
         TypeError: Raised if text is not a string.
@@ -54,15 +54,15 @@ def find_numbers_in_text(
     """Checks if one or more numbers are present in a string. Numbers do not have to be consecutive.
 
     Args:
-        text: the text to check for numbers.
-        errors (optional): Defaults to 'raise' which raises errors. 'ignore' ignores errors and returns 'Input not string: result unknown'. 'coerce' returns None.
+        text: The text to check for numbers.
+        errors (optional): Default = 'raise' which raises all errors. 'ignore' ignores errors and returns original value, 'coerce' returns None.
         convert_to_string (optional): Tells the function to convert text datatype to string, if possible. Defaults to False.
 
     Raises:
-        TypeError: raised if input datatype is not string.
+        TypeError: Raised if text datatype is not string.
 
     Returns:
-        Returns true if string contains one or more numbers (0-9) or false if no numbers present. returns string: 'Input not string: result unknown' if errors='ignore'.
+        True if string contains one or more numbers (0-9) or False if no numbers present.
     """
     try:
         if convert_to_string:
@@ -73,20 +73,20 @@ def find_numbers_in_text(
         return check
     except TypeError:
         if errors == "ignore":
-            return "Input not string: result unknown."
+            return text
         if errors == "coerce":
             return None
         raise
 
 
-def remove_numbers_from_text(
+def remove_numbers(
     text: str, errors: str = "raise", convert_to_string: bool = False
 ) -> str | None:
     """Removes one or more numbers from a string (text). Numbers do not have to be consecutive.
 
     Args:
         text: The string you want to remove numbers from e.g. 'Jane Doe 43'
-        errors (optional): Defaults to 'raise' which raises errors. 'ignore' ignores errors and returns 'Input not string: can't remove numbers'. 'coerce' returns None.
+        errors (optional): Default = 'raise' which raises all errors. 'ignore' ignores errors and returns original value, 'coerce' returns None.
         convert_to_string (optional): Tells the function to convert text datatype to string, if possible. Defaults to False.
 
     Raises:
@@ -107,7 +107,7 @@ def remove_numbers_from_text(
             return text
     except TypeError:
         if errors == "ignore":
-            return "Input not string: can't remove numbers."
+            return text
         if errors == "coerce":
             return None
         raise
@@ -118,7 +118,7 @@ def create_full_name(
     last_name: str | pd.Series,
     middle_name: str | pd.Series = "",
 ) -> str | pd.Series:
-    """Joins strings or pandas dataFrame columns into a 'Full Name' string. Useful if you are going to be fuzzy matching names.
+    """Joins strings or pandas DataFrame columns into a 'Full Name' string or column of strings. Useful if you are going to be fuzzy matching names.
 
     Args:
         first_name: First name.
@@ -126,7 +126,7 @@ def create_full_name(
         middle_name (optional): Middle name. Defaults to a blank string or blank pd.Series.
 
     Returns:
-        One string with all names joined.
+        One string or Series of strings with all names joined.
     """
     if isinstance(first_name, pd.Series):
         if isinstance(middle_name, str) and middle_name == "":
@@ -150,7 +150,7 @@ def remove_diacritics(input_text: str, errors: str = "raise") -> str | None:
 
     Args:
         input_text: The text you want to remove diacritics from.
-        errors (optional): Defaults to 'raise' which raises errors. 'ignore' ignores errors and returns original text. 'coerce' ignores errors and eturns None.
+        errors (optional): Default = 'raise' which raises all errors. 'ignore' ignores errors and returns original value, 'coerce' returns None.
 
     Raises:
         TypeError: Raised if input_text is not a string.
@@ -174,12 +174,12 @@ def remove_diacritics(input_text: str, errors: str = "raise") -> str | None:
 def remove_punctuation(
     text: str, punctuation: str = PUNCTUATION, errors: str = "raise"
 ) -> str | None:
-    """Removes all punctuation except for hyphens and apostrophes from text. Useful for cleaning names.
+    r"""Removes all punctuation except for hyphens and apostrophes from text. Useful for cleaning names.
 
     Args:
         text (str): Text you wish to remove punctuation from.
-        punctuation (optional): String containing all punctuation except for hyphens and apostrophes. Can be overridden with your own version if you want to exclude other types of punctuation. Should be one string of all chars to remove.
-        errors (optional): Defaults to 'raise', which raises errors. 'coerce' returns None, while 'ignore' ignores errors and returns original text.
+        punctuation (optional): String containing all punctuation except for hyphens and apostrophes. Can be overridden with your own version if you want to exclude other types of punctuation. Should be one string of all chars to remove. Default includes the following chars: !@#£$%^&*()_=+`~,.<>/?;:"\|[]
+        errors (optional): Default = 'raise' which raises all errors. 'ignore' ignores errors and returns original value, 'coerce' returns None.
 
     Raises:
         TypeError: Raised if text is not a string.

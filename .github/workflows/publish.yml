@@ -1,0 +1,29 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v*" # Runs when you push a tag like v0.1.0
+  release:
+    types: [published] # This ensures it definitely triggers when you click that button
+
+jobs:
+  build-n-publish:
+    name: Build and publish Python distro to PyPI
+    runs-on: ubuntu-latest
+    permissions:
+      # This permission is REQUIRED for Trusted Publishing
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish package
+        run: uv publish
