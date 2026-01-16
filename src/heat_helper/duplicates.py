@@ -92,7 +92,7 @@ def find_duplicates(
 
     print("Searching for duplicates...")
 
-    # 1. Exact Matches
+    # Exact Matches
     def _format_duplicate_list(group_series):
         # If there is more than one item in the group, it's a duplicate
         if len(group_series) > 1:
@@ -103,15 +103,12 @@ def find_duplicates(
         new_df.groupby(col_list)[id_col].transform(_format_duplicate_list).fillna("")
     )
 
-    # 2. Fuzzy Matching
-    # We use a custom Union-Find structure to track clusters.
-    # parent[x] = y means "x belongs to the same cluster as y"
+    # Fuzzy Matching
     parent = {}
 
     def find_root(i):
-        # Recursively find the root representative of ID i
         if parent.setdefault(i, i) != i:
-            parent[i] = find_root(parent[i])  # Path compression
+            parent[i] = find_root(parent[i])  
         return parent[i]
 
     def union(i, j):
@@ -121,8 +118,6 @@ def find_duplicates(
         if root_i != root_j:
             parent[root_i] = root_j
 
-    # A. Register Exact Matches into Union-Find
-    # If we already found #1 and #2 are exact matches, union them now.
     has_dupe = new_df[new_df["Potential Duplicates"] != ""]
     for row_ids in has_dupe["Potential Duplicates"]:
         ids_in_group = row_ids.split(", ")
@@ -130,7 +125,7 @@ def find_duplicates(
         for other_id in ids_in_group[1:]:
             union(first_id, other_id)
 
-    # B. Run Fuzzy Matching
+    # Run Fuzzy Matching
     if fuzzy_type == "strict":
         blocks = new_df.groupby([date_of_birth_col, postcode_col])
     else:
@@ -146,7 +141,6 @@ def find_duplicates(
         # Calculate similarity matrix
         score_matrix = process.cdist(names, names, scorer=fuzz.token_sort_ratio)
 
-        # Iterate upper triangle to avoid duplicate checks
         for i in range(len(score_matrix)):
             for j in range(i + 1, len(score_matrix)):
                 if score_matrix[i][j] >= threshold:
@@ -168,9 +162,6 @@ def find_duplicates(
                     # If fuzzy match found, Union the two IDs
                     union(ids[i], ids[j])
 
-    # --- 5. Final Reconciliation ---
-    # Now we simply group all IDs by their "Root Parent"
-    # This automatically handles the A->B->C chaining
     clusters = {}
     for i in new_df[id_col]:
         root = find_root(i)
@@ -178,8 +169,6 @@ def find_duplicates(
             clusters[root] = []
         clusters[root].append(i)
 
-    # Convert clusters to string format: "#1, #2, #3"
-    # We only care about clusters with size > 1
     id_to_string_map = {}
     for root, members in clusters.items():
         if len(members) > 1:

@@ -1,9 +1,7 @@
-# Import internal libraries
 import re
 from datetime import date
 import pandas as pd
 
-# Import external libraries
 
 # Import helper functions
 from heat_helper.exceptions import InvalidYearGroupError, FELevelError
