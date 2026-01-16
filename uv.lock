@@ -300,10 +300,9 @@ wheels = [
 
 [[package]]
 name = "heat-helper"
-version = "0.1.4"
+version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "click" },
     { name = "openpyxl" },
     { name = "pandas" },
     { name = "rapidfuzz" },
@@ -319,7 +318,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "click", specifier = ">=8.3.1" },
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "rapidfuzz", specifier = ">=3.14.3" },

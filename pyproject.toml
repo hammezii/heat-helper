@@ -4,13 +4,12 @@ description = "A python library to help users of the Higher Education Access Tra
 authors = [
     {name = "Hannah Merry"}
 ]
-version = "0.1.4"
-license = "GPL-3.0"
+version = "0.1.0"
+license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "click>=8.3.1",
     "openpyxl>=3.1.5",
     "pandas>=2.3.3",
     "rapidfuzz>=3.14.3",
