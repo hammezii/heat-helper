@@ -1462,13 +1462,13 @@
 <p>You can control the strictness of the match with the <code>threshold</code> argument. This defaults to 80, but you may want to experiment with different values depending on how strict you want the fuzzy match to be.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>Before using this function you must create a column in both DataFrames which contains the students' full names. You can use the <a href="../names/">create full name</a> function to do this.</p>
+<p>Before using this function you must create a column in both DataFrames which contains the students' full names. You can use the <a href="../names/#create-full-name">create full name</a> function to do this.</p>
 </div>
 <p>This function returns two DataFrames: one containing your matches, and one containing remaining student data which was not matched in its original format. This can be used for matching again, for example by using this function again with less strict criteria, or by using any other matching function.</p>
 <p>The matches DataFrame includes a column called Fuzzy Score which tells you the percentage match between the names. Higher means the names are more similar. 100 means the names match exactly. It also includes a column called 'Match Type' populated with whatever text you passed to <code>match_desc</code>. This can be useful if you join results of multiple matching functions together to one DataFrame to verify later: it helps you identify which matches were returned by which functions.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The function assumes the column in the HEAT export with the IDs in is called 'Student HEAT ID'. If for any reason your column is not called this, you should set the name by passing a value to the <code>heat_id_col</code> argument. See <a href="./#heat_helper.matching.perform_school_age_range_fuzzy_match">API documentation</a>.</p>
+<p>The function assumes the column in the HEAT export with the IDs in is called 'Student HEAT ID'. If for any reason your column is not called this, you should set the name by passing a value to the <code>heat_id_col</code> argument. See <a href="../matching-doc/#heat_helper.matching.perform_school_age_range_fuzzy_match">API documentation</a>.</p>
 </div>
 <div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Example with pandas DataFrame</label></div>
 <div class="tabbed-content">
