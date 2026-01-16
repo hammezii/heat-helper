@@ -1,6 +1,6 @@
 # HEAT Helper
 
-[![python - >= 3.13](https://img.shields.io/badge/python->=_3.13-blue?logo=python&logoColor=white)](https://www.python.org/) [![License](https://img.shields.io/badge/License-GPL--3.0-blue)](#license) 
+[![python - >= 3.10](https://img.shields.io/badge/python->=_3.10-blue?logo=python&logoColor=white)](https://www.python.org/) [![License](https://img.shields.io/badge/License-GPL--3.0-blue)](#license) 
 
 `heat-helper` is a Python utility library designed to streamline the cleaning and preparation of student data for use with the [Higher Education Access Tracker (HEAT)](https://heat.ac.uk).
 
