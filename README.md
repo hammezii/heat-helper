@@ -25,10 +25,15 @@ Common use cases for `heat_helper` include:
 - Matching students from your activities to their records on HEAT, so you can use their IDs to bulk register student records to activity records within HEAT
 
 ## Installation
-You can install `heat_helper` from GitHub if you have [git](https://git-scm.com/) installed on your system. I recommend [uv](https://docs.astral.sh/uv/) for easy package management.
+You can install `heat_helper` from PyPI or directly from this repository. I recommend [uv](https://docs.astral.sh/uv/) for easy package management.
 
 ### with pip
 You can install `heat_helper` with `pip` by typing the following into your terminal:
+
+```Bash
+pip install heat_helper
+```
+or from this repo:
 
 ```Bash
 pip install git+https://github.com/hammezii/heat-helper.git
@@ -36,6 +41,11 @@ pip install git+https://github.com/hammezii/heat-helper.git
 
 ### with uv
 If have already initialised a project with uv, you can add `heat_helper` as a dependency:
+
+```Bash
+uv add heat_helper
+```
+or from this repo:
 
 ```Bash
 uv add git+https://github.com/hammezii/heat-helper.git
