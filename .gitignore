@@ -20,8 +20,7 @@ cover/
 .venv
 
 # mkdocs documentation
-/site
-/docs
+docs/site
 
 # Ruff stuff:
 .ruff_cache/

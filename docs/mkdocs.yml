@@ -1,0 +1,99 @@
+# Site Settings
+site_name: HEAT Helper
+site_url: 
+nav:
+  - Quick Start: 
+    - What is HEAT Helper?: index.md
+    - Installation: installation.md
+    - Getting Started: getting-started.md
+    - Getting Help: getting-help.md
+    - Changelog: changelog.md
+  - Usage:
+    - Names: names.md
+    - Dates: dates.md
+    - Year Groups: year-groups.md
+    - Postcodes: postcodes.md
+    - Finding and Matching Students: matching.md
+    - Duplicates: duplicates.md
+    - Updates: updates.md
+    - File Processing: file-processing.md
+  - API Documentation: 
+    - Names: names-doc.md
+    - Dates: dates-doc.md
+    - Year Groups: year-groups-doc.md
+    - Postcodes: postcodes-doc.md
+    - Finding and Matching Students: matching-doc.md
+    - Duplicates: duplicates-doc.md
+    - Updates: updates-doc.md
+    - File Processing: file-processing-doc.md
+  - Development: road-map.md
+copyright: Copyright &copy; 2025 Hannah Merry.
+
+extra:
+  social:
+    - icon: fontawesome/brands/linkedin 
+      link: https://www.linkedin.com/in/hannah-merry-76947a186
+
+# Git settings
+repo_name: heat-helper
+repo_url: https://github.com/hammezii/heat-helper
+
+# Plugins
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            separate_signature: true
+            line_length: 70
+            show_signature_annotations: true
+
+# Markdown extensions
+markdown_extensions:
+  - admonition
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+# Theme
+theme:
+  name: material
+  features:
+  - navigation.top
+  - navigation.footer
+  - navigation.tabs
+  - navigation.path
+  icon:
+    logo: material/arrow-up-bold-hexagon-outline
+    repo: material/github
+  palette:
+      # Palette toggle for light mode
+    - scheme: default
+      primary: teal
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+watch:
+  - docs

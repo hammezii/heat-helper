@@ -1,8 +1,9 @@
 # HEAT Helper
 
-[![python - >= 3.10](https://img.shields.io/badge/python->=_3.10-blue?logo=python&logoColor=white)](https://www.python.org/) [![License](https://img.shields.io/badge/License-GPL--3.0-blue)](#license) 
+[![python - >= 3.10](https://img.shields.io/badge/python->=_3.10-blue?logo=python&logoColor=white)](https://www.python.org/) [![License](https://img.shields.io/badge/License-GPL--3.0-green)](#license) ![PyPI - Version](https://img.shields.io/pypi/v/heat_helper)
 
-`heat_helper` is a Python utility library designed to streamline the cleaning and preparation of student data for use with the [Higher Education Access Tracker (HEAT)](https://heat.ac.uk). It's available on PyPI here: [https://pypi.org/project/heat_helper/](https://pypi.org/project/heat_helper/)
+
+`heat_helper` is a Python utility library designed to streamline the cleaning and preparation of student data for use with the [Higher Education Access Tracker (HEAT)](https://heat.ac.uk). It's available on PyPI [here](https://pypi.org/project/heat_helper/).
 
 Preparing CSV or Excel files for HEAT often involves repetitive tasks like cleaning and formatting of names, year groups, and postcodes. This package automates these common data-cleaning tasks to ensure your imports are valid and consistent. It also provides functions to help you match students to your existing HEAT records and get their IDs to support you in reducing duplicate records uploaded to the database and with registering students to activities.
 
