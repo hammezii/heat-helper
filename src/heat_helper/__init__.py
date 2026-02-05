@@ -1,9 +1,6 @@
 # Import utils
 
-from .utils import (
-    get_excel_filepaths_in_folder, 
-    convert_col_snake_case
-)
+from .utils import get_excel_filepaths_in_folder, convert_col_snake_case
 
 from .names import (
     format_name,
@@ -14,19 +11,11 @@ from .names import (
     remove_punctuation,
 )
 
-from .dates import (
-    reverse_date, 
-    calculate_dob_range_from_year_group
-)
+from .dates import reverse_date, calculate_dob_range_from_year_group
 
-from .postcode import (
-    format_postcode,
-)
+from .postcode import format_postcode
 
-from .yeargroup import (
-    clean_year_group,
-    calculate_year_group_from_date,
-)
+from .yeargroup import clean_year_group, calculate_year_group_from_date
 
 from .matching import (
     perform_exact_match,
@@ -34,14 +23,9 @@ from .matching import (
     perform_school_age_range_fuzzy_match,
 )
 
-from .updates import (
-    get_updates,
-    get_contextual_updates,
-)
+from .updates import get_updates, get_contextual_updates
 
-from .duplicates import (
-    find_duplicates,
-)
+from .duplicates import find_duplicates
 
 # Import *
 __all__ = [
@@ -63,7 +47,7 @@ __all__ = [
     "get_contextual_updates",
     "convert_col_snake_case",
     "find_duplicates",
-    "remove_punctuation"
+    "remove_punctuation",
 ]
 
 # Version constant

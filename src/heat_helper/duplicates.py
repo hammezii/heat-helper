@@ -14,10 +14,10 @@ def find_duplicates(
     fuzzy_type: str = "permissive",
     twin_protection: bool = True,
 ) -> pd.DataFrame:
-    """Attempts to find duplicate records within one DataFrame. 
-    The function looks for exact matches on any columns passed to name_col, date_of_birth_col and postcode_col, 
-    and then attempts to fuzzy match names using either date_of_birth_col or date_of_birth_col and postcode_col 
-    to create blocks of potential matches. Strictness of duplicate matching can be controlled using threshold 
+    """Attempts to find duplicate records within one DataFrame.
+    The function looks for exact matches on any columns passed to name_col, date_of_birth_col and postcode_col,
+    and then attempts to fuzzy match names using either date_of_birth_col or date_of_birth_col and postcode_col
+    to create blocks of potential matches. Strictness of duplicate matching can be controlled using threshold
     (% match for fuzzy name matching), fuzzy type (permission or strict) which pools potential duplicates for matching by
     using either date of birth or date of birth and postcode, and setting twin_protection to True/False. Twin Protection isolates
     first names in potential matches to filter out people with totally different first names. This is not totally failsafe and may
@@ -50,7 +50,7 @@ def find_duplicates(
 
     if fuzzy_type not in ["strict", "permissive"]:
         raise ValueError("fuzzy_type must be 'strict' or 'permissive'")
-    
+
     # Check cols exist
     if isinstance(name_col, str):
         if name_col not in df.columns:
@@ -59,12 +59,14 @@ def find_duplicates(
         for name in name_col:
             if name not in df.columns:
                 raise ColumnDoesNotExistError(f"'{name_col}' not found in {df} columns")
-    
+
     if date_of_birth_col not in df.columns:
-            raise ColumnDoesNotExistError(f"'{date_of_birth_col}' not found in {df} columns")
-    
+        raise ColumnDoesNotExistError(
+            f"'{date_of_birth_col}' not found in {df} columns"
+        )
+
     if postcode_col not in df.columns:
-            raise ColumnDoesNotExistError(f"'{postcode_col}' not found in {df} columns")
+        raise ColumnDoesNotExistError(f"'{postcode_col}' not found in {df} columns")
 
     new_df = df.copy()
 
@@ -98,7 +100,7 @@ def find_duplicates(
         if len(group_series) > 1:
             return ", ".join(sorted(group_series))
         return ""
-    
+
     new_df["Potential Duplicates"] = (
         new_df.groupby(col_list)[id_col].transform(_format_duplicate_list).fillna("")
     )
@@ -108,7 +110,7 @@ def find_duplicates(
 
     def find_root(i):
         if parent.setdefault(i, i) != i:
-            parent[i] = find_root(parent[i])  
+            parent[i] = find_root(parent[i])
         return parent[i]
 
     def union(i, j):
@@ -154,9 +156,7 @@ def find_duplicates(
 
                         # If the full strings match, but the first names are clearly different,
                         # assume they are twins (or siblings) and SKIP the union.
-                        if (
-                            first_name_score < 70
-                        ):
+                        if first_name_score < 70:
                             continue
 
                     # If fuzzy match found, Union the two IDs
@@ -177,19 +177,19 @@ def find_duplicates(
                 id_to_string_map[member] = member_str
 
     # Apply the map
-    new_df['Potential Duplicates'] = new_df[id_col].map(id_to_string_map).fillna("")
+    new_df["Potential Duplicates"] = new_df[id_col].map(id_to_string_map).fillna("")
 
     # Final clean up
     if "_match_name" in new_df.columns:
         new_df.drop(columns=["_match_name"], inplace=True)
 
-    new_df['Potential Duplicates'] = new_df['Potential Duplicates'].replace(
+    new_df["Potential Duplicates"] = new_df["Potential Duplicates"].replace(
         r"^\s*$", None, regex=True
     )
 
-    new_df = new_df.sort_values(['Potential Duplicates', id_col], ascending=False)
+    new_df = new_df.sort_values(["Potential Duplicates", id_col], ascending=False)
 
-    dupe_count = len(new_df) - new_df['Potential Duplicates'].isna().sum()
+    dupe_count = len(new_df) - new_df["Potential Duplicates"].isna().sum()
     print(f"{dupe_count} records are potential duplicates.")
 
     return new_df

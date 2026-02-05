@@ -86,9 +86,7 @@ def perform_exact_match(
         final_matched["Match Type"] = match_desc
 
         unmatched = (
-            joined_df[joined_df[heat_id_col].isnull()]
-            .copy()
-            .reset_index(drop=True)
+            joined_df[joined_df[heat_id_col].isnull()].copy().reset_index(drop=True)
         )
         unmatched = unmatched[unmatched_df.columns]
 
@@ -108,9 +106,7 @@ def perform_exact_match(
 
         if verify:
             rename_dict = {
-                col: f"HEAT: {col}"
-                for col in heat_df.columns
-                if col != heat_id_col
+                col: f"HEAT: {col}" for col in heat_df.columns if col != heat_id_col
             }
             heat_df_verif = heat_df.rename(columns=rename_dict)
             final_matched_check = pd.merge(

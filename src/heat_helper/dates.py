@@ -59,19 +59,21 @@ def calculate_dob_range_from_year_group(
 
     Returns:
         The date of birth range. First date is start of the academic year; second date is the end of the academic year. Example: 01/09/2013, 31/08/2014."""
-    
+
     try:
         # Dataframe
         if isinstance(year_group, pd.Series):
             results = year_group.apply(
-                calculate_dob_range_from_year_group, 
-                start_year=start_year, 
-                errors=errors
+                calculate_dob_range_from_year_group,
+                start_year=start_year,
+                errors=errors,
             )
-            
+
             start_dates, end_dates = zip(*results)
-            return (pd.Series(start_dates, index=year_group.index), 
-                    pd.Series(end_dates, index=year_group.index))
+            return (
+                pd.Series(start_dates, index=year_group.index),
+                pd.Series(end_dates, index=year_group.index),
+            )
 
         # Individual values
         y_num = _parse_year_group_to_int(year_group)
