@@ -31,4 +31,4 @@ jobs:
 
       - name: Deploy to GitHub Pages
         # The --force flag ensures it overwrites the previous site version
-        run: uv run mkdocs gh-deploy --force
+        run: uv run mkdocs gh-deploy --force -f docs/mkdocs.yml
