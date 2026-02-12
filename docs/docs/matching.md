@@ -113,7 +113,7 @@ The matches DataFrame includes a column called Fuzzy Score which tells you the p
         'Full Name',
         'Student Full Name',
         'Fuzzy Name DOB+Postcode match',
-        70,
+        threshold=70,
     )
 
     print(f"------ MATCHED DATA")

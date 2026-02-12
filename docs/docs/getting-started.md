@@ -66,11 +66,11 @@ A simple scenario in which you might use `heat_helper` would be to clean activit
 
     # Clean the data
     df['First Name'] = df['First Name'].apply(hh.format_name)
-                                        .apply(hh.remove_numbers_from_text)
+                                        .apply(hh.remove_numbers)
                                         .apply(hh.remove_punctuation)
 
     df['Last Name'] = df['Last Name'].apply(hh.format_name)
-                                    .apply(hh.remove_numbers_from_text)
+                                    .apply(hh.remove_numbers)
                                     .apply(hh.remove_punctuation)
                                     
     df['Postcode'] = df['Postcode'].apply(hh.format_postcode)
