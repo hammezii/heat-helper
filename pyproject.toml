@@ -4,7 +4,7 @@ description = "A python library to help users of the Higher Education Access Tra
 authors = [
     {name = "hammezii"}
 ]
-version = "0.1.0"
+version = "0.1.1"
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 readme = "README.md"
