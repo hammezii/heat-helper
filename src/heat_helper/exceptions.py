@@ -5,7 +5,6 @@ from typing import Any
 ## Custom Errors
 class HeatHelperError(Exception):
     """Base class for all exceptions in this package."""
-
     pass
 
 
@@ -14,8 +13,7 @@ class InvalidYearGroupError(HeatHelperError):
 
     def __init__(self, value: Any):
         self.value = value
-        self.message = f"Invalid year group: '{value}'. Must be R/Reception or 0-13."
-        super().__init__(self.message)
+        super().__init__(f"Invalid year group: '{value}'. Must be R/Reception or 0-13.")
 
 
 class FELevelError(HeatHelperError):
@@ -23,8 +21,7 @@ class FELevelError(HeatHelperError):
 
     def __init__(self, value: Any):
         self.value = value
-        self.message = f"Invalid year group: '{value}'. Cannot translate FE Levels to school year groups."
-        super().__init__(self.message)
+        super().__init__(f"Invalid year group: '{value}'. Cannot translate FE Levels to school year groups.")
 
 
 class InvalidPostcodeError(HeatHelperError):
@@ -32,8 +29,7 @@ class InvalidPostcodeError(HeatHelperError):
 
     def __init__(self, value: Any):
         self.value = value
-        self.message = f"Invalid postcode format: '{value}'"
-        super().__init__(self.message)
+        super().__init__(f"Invalid postcode format: '{value}'")
 
 
 class ColumnDoesNotExistError(HeatHelperError):
@@ -41,8 +37,7 @@ class ColumnDoesNotExistError(HeatHelperError):
 
     def __init__(self, value: Any):
         self.value = value
-        self.message = f"Column does not exist: {value}"
-        super().__init__(self.message)
+        super().__init__(f"Column does not exist: {value}")
 
 
 class FuzzyMatchIndexError(HeatHelperError):
@@ -50,8 +45,7 @@ class FuzzyMatchIndexError(HeatHelperError):
 
     def __init__(self, value: Any):
         self.value = value
-        self.message = f"Index of {value} contains duplicate entries and cannot be used for fuzzy matching."
-        super().__init__(self.message)
+        super().__init__(f"Index of {value} contains duplicate entries and cannot be used for fuzzy matching.")
 
 
 class FilterColumnMismatchError(HeatHelperError):
@@ -59,8 +53,7 @@ class FilterColumnMismatchError(HeatHelperError):
 
     def __init__(self, value: Any):
         self.value = value
-        self.message = f"Filter columns do not match: {value}"
-        super().__init__(self.message)
+        super().__init__(f"Filter columns do not match: {value}")
 
 
 class ColumnsNotUnique(HeatHelperError):
@@ -68,5 +61,4 @@ class ColumnsNotUnique(HeatHelperError):
 
     def __init__(self, value: Any):
         self.value = value
-        self.message = f"Column names are not unique: {value}"
-        super().__init__(self.message)
+        super().__init__(f"Column names are not unique: {value}")

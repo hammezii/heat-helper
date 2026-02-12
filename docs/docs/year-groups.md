@@ -56,7 +56,7 @@ Year groups are returned in the format 'Year i' except for Reception which is re
 !!! failure "Warning"
     Calculating a year group from a date of birth is not always correct - some students may not be in the 'correct' year group for their date of birth for a variety of reasons. This might particularly be the case at post-16 level or for students with dates of birth in August, who sometimes start school the following year.
 
-This function will only return Reception to Year 13. If a student is too young for school, 'Student too young for school' will be returned. If a student is too old for school, an `InvalidYearGroupError` will be returned, unless errors are ignored.
+This function will only return Reception to Year 13. If a student is too young for school, 'Student too young for school' will be returned. If a student is too old for school, an `InvalidYearGroupError` will be returned, unless errors are ignored in which case None is returned.
 
 === "Example with single date"
 

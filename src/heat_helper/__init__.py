@@ -27,6 +27,10 @@ from .updates import get_updates, get_contextual_updates
 
 from .duplicates import find_duplicates
 
+def create_error_report(*args, **kwargs):
+    from .validation import create_error_report
+    return create_error_report(*args, **kwargs)
+
 # Import *
 __all__ = [
     "calculate_dob_range_from_year_group",
@@ -48,6 +52,7 @@ __all__ = [
     "convert_col_snake_case",
     "find_duplicates",
     "remove_punctuation",
+    "create_error_report"
 ]
 
 # Version constant

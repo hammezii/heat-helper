@@ -13,7 +13,7 @@ This function returns a list of filepaths, or an empty list if there are no file
 
     folder_path = r"C:\path\to\registers"
 
-    files = hh.get_list_of_files_in_folder(folder_path)
+    files = hh.get_excel_filepaths_in_folder(folder_path)
 
     print(files)
 
@@ -30,7 +30,7 @@ This function returns a list of filepaths, or an empty list if there are no file
 
     folder_path = r"C:\path\to\registers"
 
-    files = hh.get_list_of_files_in_folder(folder_path)
+    files = hh.get_excel_filepaths_in_folder(folder_path)
 
     # Initialise empty loop to add the registers to
     # so you can join them together efficiently with pd.concat

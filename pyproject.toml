@@ -2,7 +2,7 @@
 name = "heat_helper"
 description = "A python library to help users of the Higher Education Access Tracker (HEAT) process their data."
 authors = [
-    {name = "Hannah Merry"}
+    {name = "hammezii"}
 ]
 version = "0.1.0"
 license = "GPL-3.0-or-later"
@@ -11,8 +11,13 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "openpyxl>=3.1.5",
-    "pandas==2.3.3",
+    "pandas==2.3.0",
     "rapidfuzz>=3.14.3",
+]
+
+[project.optional-dependencies]
+validation = [
+    "pydantic==2.12.5",
 ]
 
 [project.urls]

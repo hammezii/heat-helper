@@ -2,6 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from datetime import date
+from pandas.testing import assert_series_equal
 
 from heat_helper.updates import get_updates, get_contextual_updates
 from heat_helper.exceptions import ColumnDoesNotExistError
@@ -183,6 +184,50 @@ def test_get_updates_dtype_warning_contextual(capsys):
 def test_get_contextual_updates_bad_values_type_error():
     """Triggers TypeError for the bad_values list."""
     df = pd.DataFrame({'A': [1], 'B': [1]})
-    with pytest.raises(TypeError, match="must be a List"):
+    with pytest.raises(TypeError, match="must be Iterable"):
         # Passing a string instead of a list
         get_contextual_updates(df, "A", "B", "not a list")
+
+
+@pytest.fixture
+def sample_df():
+    """Provides a consistent DataFrame for testing."""
+    return pd.DataFrame({
+        "new_data": ["A", "B", "Unknown", "Not available", "C"],
+        "heat_data": ["A", "X", "Y", "Z", "C"]
+    })
+
+@pytest.mark.parametrize("bad_values_input", [
+    ["Unknown", "Not available"],        # List
+    ("Unknown", "Not available"),        # Tuple
+    {"Unknown", "Not available"},        # Set
+])
+def test_get_contextual_updates_iterables(sample_df, bad_values_input):
+    """Tests that lists, tuples, and sets all filter 'bad' values correctly."""
+    
+    result = get_contextual_updates(
+        df=sample_df,
+        new_col="new_data",
+        heat_col="heat_data",
+        bad_values=bad_values_input
+    )
+
+    # Expected logic: 
+    # Row 0: A == A -> No update (None)
+    # Row 1: B != X -> Update with 'B'
+    # Row 2: Unknown is 'bad' -> No update (None)
+    # Row 3: Not available is 'bad' -> No update (None)
+    # Row 4: C == C -> No update (None)
+    expected = pd.Series([None, "B", None, None, None], name="new_data")
+    
+    assert_series_equal(result, expected)
+
+def test_get_contextual_updates_rejects_string(sample_df):
+    """Verifies that a single string raises a TypeError even though it's technically iterable."""
+    with pytest.raises(TypeError, match="must be Iterable"):
+        get_contextual_updates(
+            df=sample_df,
+            new_col="new_data",
+            heat_col="heat_data",
+            bad_values="Unknown" # Passing a string instead of a collection
+        )

@@ -13,6 +13,7 @@ def find_duplicates(
     threshold: int = 80,
     fuzzy_type: str = "permissive",
     twin_protection: bool = True,
+    twin_protection_threshold: int = 70,
 ) -> pd.DataFrame:
     """Attempts to find duplicate records within one DataFrame.
     The function looks for exact matches on any columns passed to name_col, date_of_birth_col and postcode_col,
@@ -31,7 +32,8 @@ def find_duplicates(
         id_col (str, optional): If there is already a column in your DataFrame which contains some kind of ID number, set it here. Otherwise, one will be created. Defaults to None.
         threshold (int, optional): The threshold for fuzzy matching. The percentage match of the name. Defaults to 80.
         fuzzy_type (str, optional): Controls whether date_of_birth_col or date_of_birth_col and postcode_col are used to create blocks for fuzzy matching. 'permissive' uses only date_of_birth_col, so will find duplicates with different postcodes. 'strict' uses both columns, so will only return potential duplicates where both date of birth and postcode match. Defaults to "permissive".
-        twin_protection (bool, optional): If True, this filters out suspected twins with less similar first names (<65% match) from returned potential duplicates. Defaults to True.
+        twin_protection (bool, optional): If True, this filters out suspected twins with less similar first names (<70% match) from returned potential duplicates. Defaults to True.
+        twin_protection_threshold (int, optional): The threshold for first name matching when twin_protection is True. Defaults to 70.
 
     Raises:
         TypeError: Raised if df is not a DataFrame.
@@ -58,7 +60,7 @@ def find_duplicates(
     else:
         for name in name_col:
             if name not in df.columns:
-                raise ColumnDoesNotExistError(f"'{name_col}' not found in {df} columns")
+                raise ColumnDoesNotExistError(f"'{name}' not found in {df} columns")
 
     if date_of_birth_col not in df.columns:
         raise ColumnDoesNotExistError(
@@ -84,7 +86,7 @@ def find_duplicates(
     for col in col_list:
         if new_df[col].dtype == "object":
             new_df[col] = (
-                df[col].str.strip().replace(r"\s+", " ", regex=True).fillna("")
+                new_df[col].str.strip().replace(r"\s+", " ", regex=True).fillna("")
             )
 
     # Set up ID column if not passed to function
@@ -156,7 +158,7 @@ def find_duplicates(
 
                         # If the full strings match, but the first names are clearly different,
                         # assume they are twins (or siblings) and SKIP the union.
-                        if first_name_score < 70:
+                        if first_name_score < twin_protection_threshold:
                             continue
 
                     # If fuzzy match found, Union the two IDs

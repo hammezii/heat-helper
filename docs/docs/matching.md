@@ -89,6 +89,9 @@ This function returns two DataFrames: one containing your matches, and one conta
 
 The matches DataFrame includes a column called Fuzzy Score which tells you the percentage match between the names. Higher means the names are more similar. 100 means the names match exactly. It also includes a column called 'Match Type' populated with whatever text you passed to `match_desc`. This can be useful if you join results of multiple matching functions together to one DataFrame to verify later: it helps you identify which matches were returned by which functions.
 
+!!! Warning
+    This function uses iterative processing and may be slow for datasets with >10,000 rows. Consider testing with a sample first, or removing exact matches using `perform_exact_match` before you attempt fuzzy matching.
+
 === "Example with pandas DataFrame"
 
     ```Python
@@ -165,6 +168,9 @@ You can control the strictness of the match with the `threshold` argument. This 
     Before using this function you must create a column in both DataFrames which contains the students' full names. You can use the [create full name](names.md#create-full-name) function to do this.
 
 This function returns two DataFrames: one containing your matches, and one containing remaining student data which was not matched in its original format. This can be used for matching again, for example by using this function again with less strict criteria, or by using any other matching function.
+
+!!! Warning
+    This function uses iterative processing and may be slow for datasets with >10,000 rows. Consider testing with a sample first, or removing exact matches using `perform_exact_match` before you attempt fuzzy matching.
 
 The matches DataFrame includes a column called Fuzzy Score which tells you the percentage match between the names. Higher means the names are more similar. 100 means the names match exactly. It also includes a column called 'Match Type' populated with whatever text you passed to `match_desc`. This can be useful if you join results of multiple matching functions together to one DataFrame to verify later: it helps you identify which matches were returned by which functions.
 

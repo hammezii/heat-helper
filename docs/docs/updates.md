@@ -4,6 +4,9 @@ These functions are used to check if updates are required when matching data of 
 ## Get Updates
 This function compares two DataFrame columns and returns a value if `new_col` is different to `heat_col`. This can help you identify where new data is different to existing HEAT records and therefore needs updating. It returns a new column which only contains data that needs to be updated - so it can be copied to the HEAT import template.
 
+!!! Note
+    This function copies the original DataFrame in memory and does not modify your original DataFrame in place.
+
 For example, if you have collected new student data and matched this to your existing HEAT records and discover that some students already have records, you can use this function to check if the new data is different to the current records. If there are differences, the new data will be returned in the return column so that you can easily identify changes.
 
 !!! Tip
@@ -74,11 +77,14 @@ For example, if you have collected new student data and matched this to your exi
     ```
 
 ## Get Contextual Updates
-This function compares two DataFrame columns and returns a value if `new_col` is different to `heat_col` and if the values in `new_col` are not in the list of `bad_values`. This can help you identify where new data is different to existing HEAT records and therefore needs updating, but will not override 'good' data with values like 'Not available' 'Unknown' or 'Information Refused'. It returns a new column which only contains data that needs to be updated - so it can be copied to the HEAT import template.
+This function compares two DataFrame columns and returns a value if `new_col` is different to `heat_col` and if the values in `new_col` are not in `bad_values`. This can help you identify where new data is different to existing HEAT records and therefore needs updating, but will not override 'good' data with values like 'Not available' 'Unknown' or 'Information Refused'. It returns a new column which only contains data that needs to be updated - so it can be copied to the HEAT import template.
 
 For example, if you have collected new student data and matched this to your existing HEAT records and discover that some students already have records, you can use this function to check if the new data is different to the current records. If there are differences, the new data will be returned in the return column so that you can easily identify changes.
 
-The best use case for this function is on the contextual data columns in the HEAT Student Export, as you can pass all 'bad' values as a list and avoid them overwriting older data.
+!!! Note
+    This function copies the original DataFrame in memory and does not modify your original DataFrame in place.
+
+The best use case for this function is on the contextual data columns in the HEAT Student Export, as you can pass all 'bad' values as a list, tuple, set or any other Iterable and avoid them overwriting older data.
 
 !!! Tip
     If used on string columns, it will attempt to 'normalise' nulls by filling them with blank strings and then turning them to None. This should mean that no null values are returned as 'new' data.
@@ -125,9 +131,9 @@ The best use case for this function is on the contextual data columns in the HEA
     import heat_helper as hh
     import pandas as pd
 
-    # Define the list of "bad" values we do not want to be override 
+    # Define the "bad" values we do not want to be overridden 
     # by good values (lose no data via updates)
-    BAD_VALUES = [
+    BAD_VALUES = (
     "Not available",
     "Information refused",
     "Not available (999)",
@@ -135,7 +141,7 @@ The best use case for this function is on the contextual data columns in the HEA
     "Not known (997)",
     "Prefer not to say (998)",
     "Prefer not to say",
-    ]
+    )
 
     contextual_columns_to_update = [
     "Sex",

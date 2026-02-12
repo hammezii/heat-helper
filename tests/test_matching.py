@@ -156,7 +156,7 @@ def test_perform_exact_match_missing_cols(sample_data):
     new_df, heat_df = sample_data
 
     # Missing in new_df
-    with pytest.raises(ColumnDoesNotExistError, match="not found in new_df"):
+    with pytest.raises(ColumnDoesNotExistError, match="not found in unmatched_df"):
         perform_exact_match(new_df, heat_df, ["WrongCol"], ["Full Name"], "test")
 
     # Missing in heat_df

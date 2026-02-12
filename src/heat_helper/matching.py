@@ -7,7 +7,7 @@ from heat_helper.exceptions import (
     FilterColumnMismatchError,
 )
 from heat_helper.dates import calculate_dob_range_from_year_group
-from heat_helper.core import CURRENT_ACADEMIC_YEAR_START, STUDENT_HEAT_ID
+from heat_helper.core import CURRENT_ACADEMIC_YEAR_START, STUDENT_HEAT_ID, HEAT_PREFIX, HEAT_SUFFIX
 
 
 def perform_exact_match(
@@ -45,11 +45,11 @@ def perform_exact_match(
     if not isinstance(unmatched_df, pd.DataFrame) or not isinstance(
         heat_df, pd.DataFrame
     ):
-        raise TypeError("new_df and heat_df must be pandas DataFrames.")
+        raise TypeError("unmatched_df and heat_df must be pandas DataFrames.")
     # Check cols exist
     for col in left_join_cols:
         if col not in unmatched_df.columns:
-            raise ColumnDoesNotExistError(f"'{col}' not found in new_df")
+            raise ColumnDoesNotExistError(f"'{col}' not found in unmatched_df")
     for col in right_join_cols:
         if col not in heat_df.columns:
             raise ColumnDoesNotExistError(f"'{col}' not found in heat_df")
@@ -106,14 +106,14 @@ def perform_exact_match(
 
         if verify:
             rename_dict = {
-                col: f"HEAT: {col}" for col in heat_df.columns if col != heat_id_col
+                col: f"{HEAT_PREFIX}{col}" for col in heat_df.columns if col != heat_id_col
             }
             heat_df_verif = heat_df.rename(columns=rename_dict)
             final_matched_check = pd.merge(
                 final_matched, heat_df_verif, how="left", on=heat_id_col
             )
             final_matched_check = final_matched_check.rename(
-                columns={heat_id_col: f"HEAT: {heat_id_col}"}
+                columns={heat_id_col: f"{HEAT_PREFIX}{heat_id_col}"}
             )
             return final_matched_check, unmatched
         else:
@@ -122,7 +122,7 @@ def perform_exact_match(
             cols_list.extend(["Match Type", heat_id_col])
             final_matched = final_matched[cols_list]
             final_matched = final_matched.rename(
-                columns={heat_id_col: f"HEAT: {heat_id_col}"}
+                columns={heat_id_col: f"{HEAT_PREFIX}{heat_id_col}"}
             )
             return final_matched, unmatched
 
@@ -139,6 +139,7 @@ def perform_fuzzy_match(
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """This function allows you to fuzzy match names of students in an external dataset to your HEAT Student Export to retrieve HEAT Student IDs.
     You can control the potential pool of fuzzy matches by specifying filter columns in both DataFrames e.g. only look for fuzzy matches where Date of Birth and Postcode matches.
+    Note: there may be performance issues with very large datasets. If you have a large dataset, it is recommended to first use perform_exact_match to pull out exact matches and reduce the dataset before using this function for fuzzy matching.
 
     Args:
         unmatched_df (pd.DataFrame): The DataFrame of students you want to fuzzy match.
@@ -185,7 +186,7 @@ def perform_fuzzy_match(
         raise FuzzyMatchIndexError("unmatched_df")
 
     # Warning about column collisions
-    collision_cols = [c for c in unmatched_df.columns if c.endswith("_HEAT")]
+    collision_cols = [c for c in unmatched_df.columns if c.endswith(HEAT_SUFFIX)]
 
     if collision_cols:
         print(
@@ -237,7 +238,7 @@ def perform_fuzzy_match(
                 if best_match:
                     name, score, heat_idx = best_match
                     # Reconstruct the row
-                    res = pd.concat([row, heat_df.loc[heat_idx].add_suffix("_HEAT")])
+                    res = pd.concat([row, heat_df.loc[heat_idx].add_suffix(HEAT_SUFFIX)])
                     res["Fuzzy Score"] = round(score, 2)
                     res["Match Type"] = match_desc
                     res["__SOURCE_INDEX__"] = idx
@@ -251,8 +252,8 @@ def perform_fuzzy_match(
             )
 
             # Rename HEAT columns
-            heat_cols = [c for c in final_matches.columns if c.endswith("_HEAT")]
-            mapping = {col: f"HEAT: {col.removesuffix('_HEAT')}" for col in heat_cols}
+            heat_cols = [c for c in final_matches.columns if c.endswith(HEAT_SUFFIX)]
+            mapping = {col: f"{HEAT_PREFIX}{col.removesuffix(HEAT_SUFFIX)}" for col in heat_cols}
             final_matches.rename(columns=mapping, inplace=True)
 
             # Sort out indices for dropping
@@ -288,6 +289,7 @@ def perform_school_age_range_fuzzy_match(
     To control the pool of fuzzy matches, data is first matched on school name, and then uses year group to only return students with a date of birth in range for that year group.
     Useful if you do not know a student's date of birth, but you do know which school they attend and their year group.
     Returns one dataframe of matches and one dataframe of remaining unmatched data.
+    Note: there may be performance issues with very large datasets. If you have a large dataset, it is recommended to first use perform_exact_match to pull out exact matches and reduce the dataset before using this function for fuzzy matching.
 
     Args:
         unmatched_df: DataFrame containing student records you wish to fuzzy match to HEAT records.
@@ -402,7 +404,7 @@ def perform_school_age_range_fuzzy_match(
             if best_match:
                 name, score, heat_idx = best_match
                 # Reconstruct row
-                res = pd.concat([row, heat_df.loc[heat_idx].add_suffix("_HEAT")])
+                res = pd.concat([row, heat_df.loc[heat_idx].add_suffix(HEAT_SUFFIX)])
                 res["Fuzzy Score"] = round(score, 2)
                 res["Match Type"] = match_desc
                 res["__SOURCE_INDEX__"] = idx
@@ -416,7 +418,7 @@ def perform_school_age_range_fuzzy_match(
             by="Fuzzy Score", ascending=False, inplace=True, ignore_index=True
         )
 
-        heat_student_id_col = f"{heat_id_col}_HEAT"
+        heat_student_id_col = f"{heat_id_col}{HEAT_SUFFIX}"
 
         initial_count = len(final_matches)
         final_matches = final_matches.drop_duplicates(
@@ -430,8 +432,8 @@ def perform_school_age_range_fuzzy_match(
             )
 
         # Rename HEAT columns
-        heat_cols = [c for c in final_matches.columns if c.endswith("_HEAT")]
-        mapping = {col: f"HEAT: {col.removesuffix('_HEAT')}" for col in heat_cols}
+        heat_cols = [c for c in final_matches.columns if c.endswith(HEAT_SUFFIX)]
+        mapping = {col: f"{HEAT_PREFIX}{col.removesuffix(HEAT_SUFFIX)}" for col in heat_cols}
         final_matches.rename(columns=mapping, inplace=True)
 
         # Sort out indices for dropping

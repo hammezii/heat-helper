@@ -22,7 +22,7 @@ RECEPTION_ALIASES = {"reception", "r", "year r", "rec", "year group r", "y0", "y
 # Used to validated postcode format
 POSTCODE_REGEX = r"^[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][A-Z]{2}$"
 
-# Used to calculate current academic year for year group / date maniuplation functions
+# Used to calculate current academic year for year group / date manipulation functions
 CURRENT_ACADEMIC_YEAR_START = _calc_current_academic_year_start(date.today())
 
 # Used to remove punctuation except hyphens and apostrophes
@@ -30,6 +30,10 @@ PUNCTUATION = '!@#£$%^&*()_=+`~,.<>/?;:"\\|[]'
 
 # For matching functions
 STUDENT_HEAT_ID = "Student HEAT ID"
+
+# Used for matching functions column returns
+HEAT_SUFFIX = "_HEAT"
+HEAT_PREFIX = "HEAT: "
 
 
 # Helper functions for main functions
@@ -58,11 +62,7 @@ def _parse_year_group_to_int(year_group: str | int | pd.Series) -> int:
 
 
 def _string_contains_int(string: str) -> bool:
-    match = re.search(r"[0-9]+", string)
-    if not match:
-        return False
-    else:
-        return True
+    return bool(re.search(r"[0-9]+", string))
 
 
 def _is_valid_postcode(postcode: str) -> bool:

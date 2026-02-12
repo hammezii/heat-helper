@@ -24,6 +24,25 @@ To install `heat_helper` type either of the following into your terminal:
 
 This means that in a new environment you can simply install `heat_helper` and have a complete setup for processing and manipulating CSV or Excel files.
 
+## Optional Dependencies
+`heat_helper` has the following optional dependencies:
+
+- [`pydantic`](https://docs.pydantic.dev/latest/) - for data validation. If installed, you gain access to [validation functions](validation.md).
+
+To install `pydantic` use:
+
+=== "pip"
+
+    ```Bash
+    pip install heat_helper[validation]
+    ```
+
+=== "uv"
+
+    ```Bash
+    uv add heat_helper[validation]
+    ```
+
 ## Install from respository
 If you have [git](https://git-scm.com/) installed on your system you can also install `heat_helper` directly from the GitHub repository:
 

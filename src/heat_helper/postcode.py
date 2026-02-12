@@ -11,7 +11,7 @@ def format_postcode(postcode: str, errors: str = "raise") -> str | None:
 
     Args:
         postcode: Text you want to clean.
-        errors: default = 'raise' which raises all errors. 'ignore' returns orignal value, 'coerce' attempts to turn postcode into string to run the function, if can't be run returns None.
+        errors: default = 'raise' which raises all errors. 'ignore' returns original value, 'coerce' attempts to turn postcode into string to run the function, if can't be run returns None.
 
     Raises:
         TypeError: Raised if postcode is not a string.
@@ -32,12 +32,14 @@ def format_postcode(postcode: str, errors: str = "raise") -> str | None:
 
         clean = re.sub(r"\s+", "", postcode)
         clean = clean.upper().strip()
-        formatted = f"{clean[:-3]} {clean[-3:]}"
-
-        if not _is_valid_postcode(formatted):
+        if len(clean) >= 3:
+            formatted = f"{clean[:-3]} {clean[-3:]}"
+            if not _is_valid_postcode(formatted):
+                raise InvalidPostcodeError(postcode)
+            return formatted
+        else:
             raise InvalidPostcodeError(postcode)
-
-        return formatted
+        
     except (InvalidPostcodeError, TypeError):
         if errors == "ignore":
             return postcode

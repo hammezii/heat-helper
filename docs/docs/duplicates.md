@@ -9,10 +9,10 @@ There are three ways to control the similarity of the duplicate matching. The fi
 
 The second way is to choose whether to use only date of birth, or date of birth and postcode to limit the pool of potential matches. If you set `fuzzy_type` to 'strict' it will only return potential duplicates where both date of birth and postcode match. By default it is set to 'permissive', which only matches on date of birth before attempting name matches. 
 
-Finally you can toggle `twin_protection` to True or False. By default this is set to True. This compares first names only and excludes any matches where the first name is less than 70% similar. This assumes that genuine duplicates with nicknames or typos in first names will be over the 70% threshold.
+Finally you can toggle `twin_protection` to True or False. By default this is set to True. This compares first names only and excludes any matches where the first name is less than `twin_protection_threshold` (default is  70% but this can be customised). This assumes that genuine duplicates with nicknames or typos in first names will be over the specified threshold.
 
 !!! failure "Warning"
-    Twin protection is not foolproof and may still return some twins as potential duplicates or miss some students who are actual duplicates. In testing, turning this to True reduced the twins being returned as duplicates by roughly 75%.
+    Twin protection is not foolproof and may still return some twins as potential duplicates or miss some students who are actual duplicates. In testing, turning this to True with a threshold of 70 reduced the twins being returned as duplicates by roughly 75%.
 
 === "Example 1: No Twin Protection"
 
@@ -76,11 +76,12 @@ Finally you can toggle `twin_protection` to True or False. By default this is se
                         'Home Postcode',
                         fuzzy_type='permissive',
                         threshold=80,
-                        twin_protection=True
+                        twin_protection=True,
+                        twin_protection_threshold=75
                         )
     
     # Results: Jane and Janie have flagged as duplicates
-    # Sarah and Sam have been excluded because twin_protection is True
+    # Sarah and Sam have been excluded because twin_protection is True and a custom twin_protection_threshold has been passed
     #                                                                Potential
     # First Name       Last Name Date of Birth Home Postcode   ID   Duplicates
     #      Janie             Doe    2010-01-01       AB1 1AB   #3       #1, #3
@@ -119,7 +120,7 @@ Finally you can toggle `twin_protection` to True or False. By default this is se
                         )
     
     # Results: No duplicates have been returned
-    # Sarah and Sam have been excluded because twin_protection is True
+    # Sarah and Sam have been excluded because twin_protection is True (with the default threshold of 70)
     # Jane and Janie have been excluded because they have different postcodes
     #                                                                 Potential
     # First Name       Last Name Date of Birth Home Postcode    ID   Duplicates

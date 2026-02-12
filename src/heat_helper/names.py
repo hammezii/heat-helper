@@ -163,7 +163,7 @@ def remove_diacritics(input_text: str, errors: str = "raise") -> str | None:
             raise TypeError(f"Input must be a string, not {type(input_text).__name__}")
         nfkd_form = unicodedata.normalize("NFKD", input_text)
         return "".join([c for c in nfkd_form if unicodedata.category(c) != "Mn"])
-    except:
+    except TypeError:
         if errors == "coerce":
             return None
         if errors == "ignore":
@@ -194,7 +194,7 @@ def remove_punctuation(
         text = text.strip().translate(table)
         cleaned = re.sub(r"\s+", " ", text).strip()
         return cleaned
-    except:
+    except TypeError:
         if errors == "coerce":
             return None
         if errors == "ignore":

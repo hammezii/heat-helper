@@ -41,7 +41,7 @@ def test_dob_errors_coerce():
 
 def test_dob_range_invalid_start_year():
     # Triggers ValueError/TypeError during int(start_year) conversion
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         calculate_dob_range_from_year_group(7, "not_a_year")
 
 

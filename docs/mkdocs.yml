@@ -17,6 +17,7 @@ nav:
     - Duplicates: duplicates.md
     - Updates: updates.md
     - File Processing: file-processing.md
+    - Validation: validation.md
   - API Documentation: 
     - Names: names-doc.md
     - Dates: dates-doc.md
@@ -26,6 +27,7 @@ nav:
     - Duplicates: duplicates-doc.md
     - Updates: updates-doc.md
     - File Processing: file-processing-doc.md
+    - Validation: validation-doc.md
   - Development: road-map.md
 copyright: Copyright &copy; 2025 Hannah Merry.
 

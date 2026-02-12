@@ -13,7 +13,7 @@ Preparing CSV or Excel files for HEAT often involves repetitive tasks like clean
 - **Text Cleaning**: simple functions to normalise names (including removing numbers, converting diacritics to plain text, removing punctuation except for hyphens and apostrophes, cleaning extra white spaces, and casing), postcodes, and year groups.
 - **Working with Dates**: reverse day/month in a date, calculate a year group from date of birth, or calculate a date of birth range from year group
 - **Student Matching**: exact and fuzzy match students from external sources (e.g. registers) to your HEAT Students export to get their ID numbers for activity linking.
-- **Data Validation**: check dates of birth are in the right age range for a given year group, or check postcodes are in a UK format.
+- **Data Validation**: check dates of birth are in the right age range for a given year group, or check postcodes are in a UK format. Optionally install `pydantic` and generate error reports for your data.
 - **Bulk processing**: get lists of Excel files in folders so you can process lots of files at once.
 - **Duplicates**: find potential duplicates in a dataset based on name, date of birth and postcode.
 - **Compatibility**: built for use with `pandas` for handling your data.
@@ -23,6 +23,7 @@ Common use cases for `heat_helper` include:
 
 - Cleaning new data to be uploaded to the HEAT database
 - Checking if 'new' students already have records in HEAT
+- Checking which fields need updating if students already have records in HEAT
 - Matching students from your activities to their records on HEAT, so you can use their IDs to bulk register student records to activity records within HEAT
 
 ## Installation
@@ -58,8 +59,9 @@ uv add git+https://github.com/hammezii/heat-helper.git
 - [`pandas`](https://pandas.pydata.org/) - for DataFrames and dealing with spreadsheet data
 - [`rapidfuzz`](https://rapidfuzz.github.io/RapidFuzz/) - for fuzzy matching
 - [`openpyxl`](https://openpyxl.readthedocs.io/en/stable/) - for processing Excel files
+- **Optional**: [`pydantic`](https://docs.pydantic.dev/latest/) - for validating your data and producing error reports
 
-This means that in a new environment you can simply install `heat_helper` and have a complete setup for processing and manipulating CSV or Excel files.
+This means that in a new environment you can simply install `heat_helper` and have a complete setup for processing and manipulating CSV or Excel files. See [documentation](https://hammezii.github.io/heat-helper/installation/) for information about optional dependencies and how to install them.
 
 ## Documentation
 You can access the documentation **[here](https://hammezii.github.io/heat-helper/)**.
