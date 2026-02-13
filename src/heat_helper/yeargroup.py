@@ -2,7 +2,7 @@
 from datetime import date
 
 # Import helper functions
-from heat_helper.exceptions import InvalidYearGroupError
+from heat_helper.exceptions import InvalidYearGroupError, FELevelError
 from heat_helper.core import _parse_year_group_to_int, CURRENT_ACADEMIC_YEAR_START
 
 
@@ -23,7 +23,7 @@ def clean_year_group(year_group: str | int, errors: str = "raise") -> str | None
     try:
         y_num = _parse_year_group_to_int(year_group)
         return "Reception" if y_num == 0 else f"Year {y_num}"
-    except (InvalidYearGroupError, TypeError):
+    except (InvalidYearGroupError, TypeError, FELevelError):
         if errors == "ignore":
             return str(year_group)
         if errors == "coerce":

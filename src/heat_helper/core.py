@@ -37,7 +37,7 @@ HEAT_PREFIX = "HEAT: "
 
 
 # Helper functions for main functions
-def _parse_year_group_to_int(year_group: str | int | pd.Series) -> int:
+def _parse_year_group_to_int(year_group: str | int | pd.Series) -> int | pd.Series:
     """Internal helper to convert any year group input to an integer (0-13)."""
     if isinstance(year_group, pd.Series):
         return year_group.apply(_parse_year_group_to_int)
