@@ -4,7 +4,7 @@ This page contains information about each release of `heat_helper`.
 ## v0.1.2
 Release date: 2026-02-13
 
--- **Bug Fix**: fixed an error with the clean year group function which meant error behaviour wasn't working correctly when run on FE Levels.
+- **Bug Fix**: fixed an error with the clean year group function which meant error behaviour wasn't working correctly when run on FE Levels.
 
 ## v0.1.1
 Release date: 2026-02-12
