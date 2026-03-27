@@ -1,4 +1,7 @@
-# Dates API Reference
+---
+icon: material/calendar-range
+---
+# Dates API
 This is the API reference for all functions designed to be used on dates. You can find usage examples **[here](dates.md)**.
 
 ::: heat_helper.dates.reverse_date

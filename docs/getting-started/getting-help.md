@@ -1,3 +1,6 @@
+---
+icon: material/help
+---
 # Getting Help
 If you are new to `heat_helper`, want to find out about its functions, or see examples of it in use, the following pages can help.
 

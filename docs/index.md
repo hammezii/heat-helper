@@ -27,4 +27,4 @@ Common use cases for `heat_helper` include:
 ## Built by
 `heat_helper` was created by Hannah Merry at Higher Horizons Uni Connect and is free for anyone to use. It is open source, and you can find the code on [Github](https://github.com/hammezii/heat-helper).
 
-This documentation was built with [material for mkdocs](https://squidfunk.github.io/mkdocs-material/) and [mkdocstrings](https://mkdocstrings.github.io/).
+This documentation was built with [zensical](https://zensical.org/).

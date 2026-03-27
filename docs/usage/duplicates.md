@@ -1,3 +1,6 @@
+---
+icon: material/content-duplicate
+---
 # Duplicates
 These functions help to find duplicates within your data.
 

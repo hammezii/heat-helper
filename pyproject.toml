@@ -10,9 +10,9 @@ license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "openpyxl>=3.1.5",
+    "openpyxl==3.1.5",
     "pandas==2.3.3",
-    "rapidfuzz>=3.14.3",
+    "rapidfuzz==3.14.3",
 ]
 
 [project.optional-dependencies]
@@ -30,9 +30,12 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "mkdocs-material>=9.7.1",
-    "mkdocstrings[python]>=1.0.0",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "ruff>=0.14.13",
+]
+
+docs = [
+    "zensical>=0.0.29",
+    "mkdocstrings[python]>=1.0.0",
 ]

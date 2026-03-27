@@ -1,4 +1,7 @@
-# Postcodes API Reference
+---
+icon: material/postage-stamp
+---
+# Postcodes API
 This is the API reference for all functions designed to be used on postcodes. You can find usage examples **[here](postcodes.md)**.
 
 ::: heat_helper.postcode.format_postcode

@@ -1,3 +1,6 @@
+---
+icon: material/file-check-outline
+---
 # Validation
 These functions are used with the optional `pydantic` dependency to validate your data and generate error reports.
 

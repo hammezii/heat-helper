@@ -1,4 +1,7 @@
-# Duplicates API Reference
+---
+icon: material/content-duplicate
+---
+# Duplicates API
 This is the API reference for all functions designed to find duplicate records in a DataFrame. You can find usage examples **[here](duplicates.md)**.
 
 ::: heat_helper.duplicates.find_duplicates

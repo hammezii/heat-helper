@@ -2,35 +2,52 @@ name: Publish Documentation
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - 'docs/**'
-      - 'docs/mkdocs.yml'
+      - 'zensical.toml'
       - 'src/heat_helper/**'
-
-concurrency:
-  group: github-pages
-  cancel-in-progress: true
+      - 'pyproject.toml'
 
 permissions: {}
 
 jobs:
-  docs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read     # To checkout the code
+      pages: write        # To upload the site to Pages
+      id-token: write     # To verify the deployment via OIDC
     steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@v5 
 
       - name: Install uv
-        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78  # v7.6.0
+        # Updated to v7.6.0 with the corresponding SHA
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
         with:
           enable-cache: true
 
-      - name: Install dependencies
-        run: uv sync --group dev
+      - name: Build with Zensical
+        run: |
+          # 1. Sync only the 'docs' tools and the 'validation' extra (Pydantic)
+          # This also automatically installs heat_helper in editable mode.
+          uv sync --only-group docs --extra validation
+          
+          # 3. Build the site (Zensical looks for zensical.toml in the current dir)
+          uv run zensical build --clean
 
-      - name: Deploy to GitHub Pages
-        run: uv run mkdocs gh-deploy --force -f docs/mkdocs.yml
+      - name: Upload to Pages
+        uses: actions/upload-pages-artifact@v4 
+        with:
+          path: site
+
+      - name: Deploy
+        uses: actions/deploy-pages@v4 
+        id: deployment

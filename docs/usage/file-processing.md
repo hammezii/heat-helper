@@ -1,3 +1,6 @@
+---
+icon: material/file-cabinet
+---
 # File Processing
 These functions help you manipulate files.
 

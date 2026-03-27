@@ -1,3 +1,6 @@
+---
+icon: material/update
+---
 # Updates
 These functions are used to check if updates are required when matching data of new students to existing HEAT records. They return only the data that is different from your HEAT records, which can be copied to HEAT upload templates to bulk update records.
 

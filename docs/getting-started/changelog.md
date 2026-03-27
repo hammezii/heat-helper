@@ -1,3 +1,6 @@
+---
+icon: material/clock-outline
+---
 # Changelog
 This page contains information about each release of `heat_helper`.
 

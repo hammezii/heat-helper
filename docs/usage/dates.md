@@ -1,3 +1,6 @@
+---
+icon: material/calendar-range
+---
 # Dates
 These functions are designed for use on dates (usually dates of birth).
 

@@ -1,3 +1,6 @@
+---
+icon: material/package-variant
+---
 # Installation
 There are a few different options to install `heat_helper`. I recommend [uv](https://docs.astral.sh/uv/) for easy package and project management. You can also install `heat_helper` with pip.
 

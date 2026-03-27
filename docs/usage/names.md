@@ -1,3 +1,6 @@
+---
+icon: material/signature-text
+---
 # Names and Text
 These functions are used to help you clean and format student names.
 

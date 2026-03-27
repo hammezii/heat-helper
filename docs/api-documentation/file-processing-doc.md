@@ -1,4 +1,7 @@
-# File Processing API Reference
+---
+icon: material/file-cabinet
+---
+# File Processing API
 This is the API reference for all functions designed to be files. You can find usage examples **[here](file-processing.md)**.
 
 ::: heat_helper.utils.get_excel_filepaths_in_folder

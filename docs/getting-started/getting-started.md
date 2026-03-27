@@ -1,3 +1,6 @@
+---
+icon: material/book-open-variant-outline
+---
 # Getting Started
 `heat_helper` is designed to be easy to use and to integrate with your python workflow, especially if you are already familiar with common data packages like `pandas`. 
 

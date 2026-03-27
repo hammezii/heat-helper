@@ -1,4 +1,7 @@
-# Validation API Reference
+---
+icon: material/file-check-outline
+---
+# Validation API
 This is the API reference for all functions designed to be used for validation. You can find usage examples **[here](validation.md)**.
 
 ::: heat_helper.validation.create_error_report

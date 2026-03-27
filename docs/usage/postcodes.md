@@ -1,3 +1,6 @@
+---
+icon: material/postage-stamp
+---
 # Postcodes
 These functions are designed to be run on postodes.
 

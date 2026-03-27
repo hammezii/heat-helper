@@ -1,3 +1,6 @@
+---
+icon: material/account-group-outline
+---
 # Year Groups
 These functions are for use with year groups.
 

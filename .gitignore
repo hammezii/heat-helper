@@ -19,7 +19,7 @@ cover/
 # Environments
 .venv
 
-# mkdocs documentation
+# zensical documentation
 docs/site
 
 # Ruff stuff:

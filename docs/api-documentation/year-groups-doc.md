@@ -1,4 +1,7 @@
-# Year Groups API Reference
+---
+icon: material/account-group-outline
+---
+# Year Groups API
 This is the API reference for all functions designed to be used on year groups. You can find usage examples **[here](year-groups.md)**.
 
 ::: heat_helper.yeargroup.clean_year_group

@@ -1,3 +1,6 @@
+---
+icon: material/database-search
+---
 # Matching
 These functions are used to match student data to your HEAT records using the Student Export. They can be used to check if students in newly collected data already have records or to find Student IDs for registering students to activities within HEAT.
 
