@@ -9,7 +9,7 @@ site_name = "HEAT Helper"
 site_description = "heat_helper is a python package to help you manage your HEAT data."
 
 # The site_author attribute. This is used in the HTML head element.
-site_author = "hammezii"
+site_author = "Hannah Merry"
 
 # The site_url is the canonical URL for your site. When building online
 # documentation you should set this.
