@@ -7,7 +7,9 @@ import pandas as pd
 # Import helper functions
 from heat_helper.core import _parse_year_group_to_int, CURRENT_ACADEMIC_YEAR_START
 from heat_helper.exceptions import InvalidYearGroupError, FELevelError
+from .logger import get_logger, log_series_summary
 
+logger = get_logger(__name__)
 
 def reverse_date(input_date: date, errors: str = "raise") -> date:
     """Sometimes dates are incorrectly formatted by Excel such that the day and month is swapped around. This can create errors when reading the data into pandas DataFrames. This function can be used to create a 'reversed' date where the day and month are swapped around. If this creates a date which doesn't exist, the original date is returned.
@@ -24,17 +26,20 @@ def reverse_date(input_date: date, errors: str = "raise") -> date:
     """
     try:
         if pd.isna(input_date):
+            logger.debug("reverse_date: NaN/NaT input, returning unchanged")
             return input_date
         if not isinstance(input_date, date):
             raise TypeError(
                 f"input_date must be date format, not {type(input_date).__name__}"
             )
         if input_date.day > 12:
+            logger.debug("reverse_date: %s has day > 12, not reversible; returning original", input_date)
             return input_date
         else:
             return input_date.replace(day=input_date.month, month=input_date.day)
     except (TypeError, NameError):
         if errors == "ignore":
+            logger.debug("reverse_date: invalid input %r ignored, returning original", input_date)
             return input_date
         raise
 
@@ -72,6 +77,16 @@ def calculate_dob_range_from_year_group(
             )
 
             start_dates, end_dates = zip(*results)
+
+            failed = sum(1 for d in start_dates if d is None)
+            log_series_summary(
+                logger,
+                "calculate_dob_range_from_year_group",
+                len(year_group),
+                parsed=len(year_group) - failed,
+                unresolved=failed,
+            )
+
             return (
                 pd.Series(start_dates, index=year_group.index),
                 pd.Series(end_dates, index=year_group.index),
@@ -81,9 +96,11 @@ def calculate_dob_range_from_year_group(
         y_num = _parse_year_group_to_int(year_group)
         dob_start_year = int(start_year) - (y_num + 5)
         return date(dob_start_year, 9, 1), date(dob_start_year + 1, 8, 31)
-    except (InvalidYearGroupError, TypeError, FELevelError):
-        if errors == "coerce":
+    except (InvalidYearGroupError, TypeError, FELevelError) as exc:
+        if errors in ("coerce", "ignore"):
+            logger.debug(
+                "calculate_dob_range_from_year_group: could not resolve %r (%s); returning None, None",
+                year_group, type(exc).__name__,
+            )
             return None, None
-        if errors == "ignore":
-            return None, None  # Dates usually can't be 'ignored' as strings
         raise

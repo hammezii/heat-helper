@@ -1,4 +1,4 @@
-# Import utils
+from .logger import enable_logging, disable_logging
 
 from .utils import get_excel_filepaths_in_folder, convert_col_snake_case
 
@@ -33,6 +33,8 @@ def create_error_report(*args, **kwargs):
 
 # Import *
 __all__ = [
+    "enable_logging",
+    "disable_logging",
     "calculate_dob_range_from_year_group",
     "clean_year_group",
     "format_postcode",
@@ -54,6 +56,3 @@ __all__ = [
     "remove_punctuation",
     "create_error_report"
 ]
-
-# Version constant
-__version__ = "0.1.0"

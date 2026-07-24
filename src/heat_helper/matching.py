@@ -8,7 +8,9 @@ from heat_helper.exceptions import (
 )
 from heat_helper.dates import calculate_dob_range_from_year_group
 from heat_helper.core import CURRENT_ACADEMIC_YEAR_START, STUDENT_HEAT_ID, HEAT_PREFIX, HEAT_SUFFIX
+from .logger import get_logger
 
+logger = get_logger(__name__)
 
 def perform_exact_match(
     unmatched_df: pd.DataFrame,
@@ -59,8 +61,8 @@ def perform_exact_match(
         )
 
     if unmatched_df.empty:
-        print(
-            f"WARNING: skipping match type: {match_desc} - no students left to match."
+        logger.warning(
+            "Skipping match type: %s - no students left to match.", match_desc
         )
         return pd.DataFrame(), unmatched_df
     else:
@@ -95,13 +97,16 @@ def perform_exact_match(
         total_unmatched = len(unmatched)
         students_matched_count = total_new - total_unmatched
         has_duplicates = len(final_matched) > students_matched_count
-        print(f"   Attempting to match {total_new} students. Match type: {match_desc}.")
-        print(f"     ...{students_matched_count} students found in HEAT data")
-        print(f"     ...{len(unmatched)} students left to find.")
+        logger.info(
+            "Attempting to match %d students. Match type: %s.", total_new, match_desc
+        )
+        logger.info("%d students found in HEAT data", students_matched_count)
+        logger.info("%d students left to find.", len(unmatched))
         if has_duplicates:
             diff = len(final_matched) - students_matched_count
-            print(
-                f"     WARNING: {diff} extra record(s) created. Some student matched to multiple HEAT records. Check HEAT data for duplicates."
+            logger.warning(
+                "%d extra record(s) created. Some student matched to multiple HEAT records. Check HEAT data for duplicates.",
+                diff,
             )
 
         if verify:
@@ -189,18 +194,21 @@ def perform_fuzzy_match(
     collision_cols = [c for c in unmatched_df.columns if c.endswith(HEAT_SUFFIX)]
 
     if collision_cols:
-        print(
-            f"WARNING: The input unmatched_df contains columns that already end in '_HEAT': {collision_cols}. These will be renamed to 'HEAT: ...' in the final output and may be indistinguishable from actual data retrieved from the HEAT database."
+        logger.warning(
+            "The input unmatched_df contains columns that already end in '_HEAT': %s. These will be renamed to 'HEAT: ...' in the final output and may be indistinguishable from actual data retrieved from the HEAT database.",
+            collision_cols,
         )
 
     if unmatched_df.empty:
-        print(
-            f"WARNING: skipping match type: {match_desc} - no students left to match."
+        logger.warning(
+            "Skipping match type: %s - no students left to match.", match_desc
         )
         return pd.DataFrame(), unmatched_df
     else:
-        print(
-            f"     Attempting to match {len(unmatched_df)} students. Fuzzy match type: {match_desc}."
+        logger.info(
+            "Attempting to match %d students. Fuzzy match type: %s.",
+            len(unmatched_df),
+            match_desc,
         )
 
         # Create copies in case slice passed to function
@@ -260,14 +268,14 @@ def perform_fuzzy_match(
             matched_indices = final_matches["__SOURCE_INDEX__"].tolist()
             final_matches.drop(columns=["__SOURCE_INDEX__"], inplace=True)
 
-            print(f"     ...{len(final_matches)} students found in HEAT data.")
+            logger.info("%d students found in HEAT data.", len(final_matches))
         else:
             matched_indices = []
-            print("     ...0 students found in HEAT data.")
+            logger.info("0 students found in HEAT data.")
 
         # Identify who is still missing
         remaining_unmatched = unmatched_df.drop(matched_indices)
-        print(f"     ...{len(remaining_unmatched)} students left to find.")
+        logger.info("%d students left to find.", len(remaining_unmatched))
         return final_matches, remaining_unmatched
 
 
@@ -321,7 +329,7 @@ def perform_school_age_range_fuzzy_match(
     if not pd.api.types.is_datetime64_any_dtype(heat_df[heat_dob_col]):
         try:
             heat_df[heat_dob_col] = pd.to_datetime(heat_df[heat_dob_col]).dt.normalize()
-            print(f"Note: Converted '{heat_dob_col}' to datetime format automatically.")
+            logger.warning("Converted '%s' to datetime format automatically.", heat_dob_col)
         except Exception:
             raise TypeError(
                 f"'{heat_dob_col}' is not datetime and could not be converted."
@@ -427,8 +435,9 @@ def perform_school_age_range_fuzzy_match(
         conflicts_removed = initial_count - len(final_matches)
 
         if conflicts_removed > 0:
-            print(
-                f"     ...Removed {conflicts_removed} duplicate HEAT ID assignments (kept highest scores)."
+            logger.info(
+                "Removed %d duplicate HEAT ID assignments (kept highest scores).",
+                conflicts_removed,
             )
 
         # Rename HEAT columns
@@ -440,10 +449,10 @@ def perform_school_age_range_fuzzy_match(
         matched_indices = final_matches["__SOURCE_INDEX__"].tolist()
         final_matches.drop(columns=["__SOURCE_INDEX__"], inplace=True)
 
-        print(f"     ...{len(final_matches)} school/age fuzzy matches found.")
+        logger.info("%d school/age fuzzy matches found.", len(final_matches))
     else:
         matched_indices = []
-        print("     ...0 matches found.")
+        logger.info("0 matches found.")
 
     remaining_unmatched = unmatched_df.drop(matched_indices)
 

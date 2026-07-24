@@ -4,7 +4,9 @@ from datetime import date
 # Import helper functions
 from heat_helper.exceptions import InvalidYearGroupError, FELevelError
 from heat_helper.core import _parse_year_group_to_int, CURRENT_ACADEMIC_YEAR_START
+from .logger import get_logger
 
+logger = get_logger(__name__)
 
 def clean_year_group(year_group: str | int, errors: str = "raise") -> str | None:
     """Takes school year groups and cleans them to have the consistent format 'Year i'.
@@ -25,8 +27,10 @@ def clean_year_group(year_group: str | int, errors: str = "raise") -> str | None
         return "Reception" if y_num == 0 else f"Year {y_num}"
     except (InvalidYearGroupError, TypeError, FELevelError):
         if errors == "ignore":
+            logger.debug("clean_year_group: non-valid input %r ignored, returning original", year_group)
             return str(year_group)
         if errors == "coerce":
+            logger.debug("clean_year_group: non-valid input %r coerced to None", year_group)
             return None
         raise
 
@@ -68,5 +72,6 @@ def calculate_year_group_from_date(
             return f"Year {year_group}"
     except (TypeError, InvalidYearGroupError):
         if errors == "ignore":
+            logger.debug("calculate_year_group_from_date: non-valid input %r ignored, returning None", input_date)
             return None
         raise

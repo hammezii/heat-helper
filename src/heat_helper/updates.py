@@ -1,6 +1,9 @@
 import pandas as pd
 from heat_helper.exceptions import ColumnDoesNotExistError
 from collections.abc import Iterable
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_updates(df: pd.DataFrame, new_col: str, heat_col: str) -> pd.Series:
@@ -41,8 +44,12 @@ def get_updates(df: pd.DataFrame, new_col: str, heat_col: str) -> pd.Series:
 
     # Warning if dtypes are different
     if left.dtype != right.dtype:
-        print(
-            f"WARNING: Type Mismatch: {new_col} is {left.dtype}, but {heat_col} is {right.dtype}"
+        logger.warning(
+            "Type Mismatch: %s is %s, but %s is %s",
+            new_col,
+            left.dtype,
+            heat_col,
+            right.dtype,
         )
 
     # Standard equality check that handles nulls
@@ -96,8 +103,12 @@ def get_contextual_updates(
 
     # Warning if dtypes are different
     if left.dtype != right.dtype:
-        print(
-            f"WARNING: Type Mismatch: {new_col} is {left.dtype}, but {heat_col} is {right.dtype}"
+        logger.warning(
+            "Type Mismatch: %s is %s, but %s is %s",
+            new_col,
+            left.dtype,
+            heat_col,
+            right.dtype,
         )
 
     bad_values_set = set(bad_values) if not isinstance(bad_values, set) else bad_values

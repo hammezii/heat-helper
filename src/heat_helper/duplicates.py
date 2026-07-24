@@ -2,6 +2,9 @@ import pandas as pd
 from rapidfuzz import fuzz, process
 
 from heat_helper.exceptions import ColumnDoesNotExistError
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def find_duplicates(
@@ -94,7 +97,7 @@ def find_duplicates(
         new_df["Duplicate ID"] = "#" + (pd.Series(range(len(new_df))) + 1).astype(str)
         id_col = "Duplicate ID"
 
-    print("Searching for duplicates...")
+    logger.debug("find_duplicates: searching %d records for duplicates", len(df))
 
     # Exact Matches
     def _format_duplicate_list(group_series):
@@ -192,6 +195,6 @@ def find_duplicates(
     new_df = new_df.sort_values(["Potential Duplicates", id_col], ascending=False)
 
     dupe_count = len(new_df) - new_df["Potential Duplicates"].isna().sum()
-    print(f"{dupe_count} records are potential duplicates.")
+    logger.info("%d records are potential duplicates.", dupe_count)
 
     return new_df

@@ -4,6 +4,11 @@ icon: material/clock-outline
 # Changelog
 This page contains information about each release of `heat_helper`.
 
+## v.0.1.3
+Release date: 2026-07024
+
+- **Implemented Logging**: 'heat_helper' now has native logging which you can figure with the built-in 'enable_logging' function or the standard 'logging' module.
+
 ## v0.1.2
 Release date: 2026-02-13
 

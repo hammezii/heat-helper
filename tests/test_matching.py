@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 import pandas as pd
 import numpy as np
@@ -69,9 +71,9 @@ def test_perform_exact_match_verify_flag(sample_data):
     assert matched.iloc[0]["HEAT: Postcode"] == "ST1"
 
 
-def test_perform_exact_match_duplicates(sample_data, capsys):
+def test_perform_exact_match_duplicates(sample_data, caplog):
     new_df, heat_df = sample_data
-    # Create a duplicate in HEAT to trigger the WARNING print statement
+    # Create a duplicate in HEAT to trigger the WARNING log record
     heat_df_dupe = pd.concat(
         [
             heat_df,
@@ -86,18 +88,18 @@ def test_perform_exact_match_duplicates(sample_data, capsys):
         ignore_index=True,
     )
 
-    matched, _ = perform_exact_match(
-        new_df, heat_df_dupe, ["Name"], ["Full Name"], "Dupe Test"
-    )
+    with caplog.at_level(logging.WARNING, logger="heat_helper.matching"):
+        matched, _ = perform_exact_match(
+            new_df, heat_df_dupe, ["Name"], ["Full Name"], "Dupe Test"
+        )
 
-    captured = capsys.readouterr()
-    assert "WARNING" in captured.out
-    assert "extra record(s) created" in captured.out
+    assert "extra record(s) created" in caplog.text
+    assert any(r.levelno == logging.WARNING for r in caplog.records)
 
 
 # --- ERROR HANDLING & BRANCHES ---
 
-def test_perform_exact_match_empty_unmatched_df(capsys):
+def test_perform_exact_match_empty_unmatched_df(caplog):
     """Tests the early exit clause when there are no students left to match."""
     
     # Setup: Empty unmatched_df with expected columns
@@ -115,13 +117,14 @@ def test_perform_exact_match_empty_unmatched_df(capsys):
     match_desc = "Name Match"
 
     # Execute
-    matched, unmatched = perform_exact_match(
-        unmatched_df, 
-        heat_df, 
-        left_cols, 
-        right_cols, 
-        match_desc
-    )
+    with caplog.at_level(logging.WARNING, logger="heat_helper.matching"):
+        matched, unmatched = perform_exact_match(
+            unmatched_df,
+            heat_df,
+            left_cols,
+            right_cols,
+            match_desc
+        )
 
     # 1. Check Return Values
     assert matched.empty
@@ -129,12 +132,12 @@ def test_perform_exact_match_empty_unmatched_df(capsys):
     assert isinstance(matched, pd.DataFrame)
     assert isinstance(unmatched, pd.DataFrame)
 
-    # 2. Check printed warning (using capsys fixture)
-    captured = capsys.readouterr()
-    expected_warning = f"WARNING: skipping match type: {match_desc} - no students left to match."
-    assert expected_warning in captured.out
+    # 2. Check the logged warning (using caplog fixture)
+    expected_warning = f"Skipping match type: {match_desc} - no students left to match."
+    assert expected_warning in caplog.text
+    assert any(r.levelno == logging.WARNING for r in caplog.records)
 
-def test_perform_exact_match_empty_unmatched_df_preserves_columns(capsys):
+def test_perform_exact_match_empty_unmatched_df_preserves_columns():
     """Verifies that the returned unmatched_df retains its column structure even if empty."""
     
     unmatched_df = pd.DataFrame(columns=["Name", "DOB"])
@@ -313,20 +316,21 @@ def test_fuzzy_non_unique_index_error(sample_heat):
         perform_fuzzy_match(df_non_unique, sample_heat, [], [], "Name", "Name", "T")
 
 
-def test_column_collision_warning(sample_unmatched, sample_heat, capsys):
+def test_column_collision_warning(sample_unmatched, sample_heat, caplog):
     # Add a column that triggers the warning
     sample_unmatched["Old_Score_HEAT"] = 90
-    perform_fuzzy_match(
-        sample_unmatched,
-        sample_heat,
-        ["Birth_Date"],
-        ["DOB"],
-        "External_Name",
-        "Name",
-        "T",
-    )
-    captured = capsys.readouterr()
-    assert "WARNING" in captured.out
+    with caplog.at_level(logging.WARNING, logger="heat_helper.matching"):
+        perform_fuzzy_match(
+            sample_unmatched,
+            sample_heat,
+            ["Birth_Date"],
+            ["DOB"],
+            "External_Name",
+            "Name",
+            "T",
+        )
+    assert "Old_Score_HEAT" in caplog.text
+    assert any(r.levelno == logging.WARNING for r in caplog.records)
 
 
 def test_nan_handling_in_keys(sample_heat):
@@ -385,7 +389,7 @@ def test_fuzzy_match_right_name_col_missing(valid_dfs):
             match_desc="Fuzzy Name Match"
         )
 
-def test_fuzzy_match_unmatched_empty(valid_dfs, capsys):
+def test_fuzzy_match_unmatched_empty(valid_dfs, caplog):
     """Tests the early exit and warning when unmatched_df is empty."""
     _, heat = valid_dfs
     # Create an empty df with the correct columns
@@ -393,24 +397,25 @@ def test_fuzzy_match_unmatched_empty(valid_dfs, capsys):
     
     match_desc = "Fuzzy Name Match"
     
-    matched, remaining = perform_fuzzy_match(
-        unmatched_df=empty_unmatched,
-        heat_df=heat,
-        left_filter_cols=["Postcode"],
-        right_filter_cols=["HEAT_Postcode"],
-        left_name_col="Student_Name",
-        right_name_col="HEAT_Name",
-        match_desc=match_desc
-    )
-    
+    with caplog.at_level(logging.WARNING, logger="heat_helper.matching"):
+        matched, remaining = perform_fuzzy_match(
+            unmatched_df=empty_unmatched,
+            heat_df=heat,
+            left_filter_cols=["Postcode"],
+            right_filter_cols=["HEAT_Postcode"],
+            left_name_col="Student_Name",
+            right_name_col="HEAT_Name",
+            match_desc=match_desc
+        )
+
     # 1. Check Return Values
     assert matched.empty
     assert remaining.empty
     assert isinstance(matched, pd.DataFrame)
-    
+
     # 2. Check the Warning Message
-    captured = capsys.readouterr()
-    assert f"WARNING: skipping match type: {match_desc}" in captured.out
+    assert f"Skipping match type: {match_desc}" in caplog.text
+    assert any(r.levelno == logging.WARNING for r in caplog.records)
 
 # ---- FUZZY MATCHING SCHOOL DOB RANGE TESTE
 

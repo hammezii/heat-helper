@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 import pandas as pd
 import numpy as np
@@ -102,24 +104,23 @@ def test_get_updates_missing_column():
     with pytest.raises(ColumnDoesNotExistError):
         get_updates(df, 'NON_EXISTENT', 'B')
 
-def test_get_updates_dtype_warning(capsys):
-    """Checks if the warning prints when dtypes are different (e.g., int vs float)."""
+def test_get_updates_dtype_warning(caplog):
+    """Checks the warning is logged when dtypes are different (e.g., int vs float)."""
     # Create data with different dtypes: 'new' is int64, 'old' is float64
     df = pd.DataFrame({
         'new': [1, 2, 3],
         'old': [1.0, 2.0, 4.0]
     })
-    
-    # Run the function
-    get_updates(df, 'new', 'old')
-    
-    # Capture the printed output
-    captured = capsys.readouterr()
-    
-    # Assert that the warning message appeared in the output
-    assert "WARNING: Type Mismatch" in captured.out
-    assert "int64" in captured.out
-    assert "float64" in captured.out
+
+    # Run the function, capturing log records from the updates module
+    with caplog.at_level(logging.WARNING, logger="heat_helper.updates"):
+        get_updates(df, 'new', 'old')
+
+    # Assert that the warning message was logged at WARNING level
+    assert "Type Mismatch" in caplog.text
+    assert "int64" in caplog.text
+    assert "float64" in caplog.text
+    assert any(r.levelno == logging.WARNING for r in caplog.records)
 
 
 def test_get_contextual_updates():
@@ -161,25 +162,24 @@ def test_get_updates_missing_column_contextual():
     with pytest.raises(ColumnDoesNotExistError):
         get_contextual_updates(df, 'NON_EXISTENT', 'B', bad)
 
-def test_get_updates_dtype_warning_contextual(capsys):
-    """Checks if the warning prints when dtypes are different (e.g., int vs float)."""
+def test_get_updates_dtype_warning_contextual(caplog):
+    """Checks the warning is logged when dtypes are different (e.g., int vs float)."""
     # Create data with different dtypes: 'new' is int64, 'old' is float64
     df = pd.DataFrame({
         'new': [1, 2, 3],
         'old': [1.0, 2.0, 4.0]
     })
     bad = ['Unknown', 'Not available']
-    
-    # Run the function
-    get_contextual_updates(df, 'new', 'old', bad)
-    
-    # Capture the printed output
-    captured = capsys.readouterr()
-    
-    # Assert that the warning message appeared in the output
-    assert "WARNING: Type Mismatch" in captured.out
-    assert "int64" in captured.out
-    assert "float64" in captured.out
+
+    # Run the function, capturing log records from the updates module
+    with caplog.at_level(logging.WARNING, logger="heat_helper.updates"):
+        get_contextual_updates(df, 'new', 'old', bad)
+
+    # Assert that the warning message was logged at WARNING level
+    assert "Type Mismatch" in caplog.text
+    assert "int64" in caplog.text
+    assert "float64" in caplog.text
+    assert any(r.levelno == logging.WARNING for r in caplog.records)
 
 def test_get_contextual_updates_bad_values_type_error():
     """Triggers TypeError for the bad_values list."""

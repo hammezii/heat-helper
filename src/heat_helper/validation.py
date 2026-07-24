@@ -1,6 +1,9 @@
 import pandas as pd
 from datetime import datetime
 from typing import Any, cast, TYPE_CHECKING
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from pydantic import BaseModel as _PydanticBaseModel, ValidationError
@@ -67,11 +70,11 @@ def create_error_report(df: pd.DataFrame, Model: Any, df_name: str) -> pd.DataFr
         )
 
     if df.empty:
-        print(f"Skipping validation: {df_name} is empty.")
+        logger.warning("Skipping validation: %s is empty.", df_name)
         return df
 
     # Create empty list to collect error reports
-    print(f"Attempting validation of {df_name}...")
+    logger.info("Attempting validation of %s...", df_name)
     list_for_joining = []
 
     data_dicts = df.astype(object).where(pd.notnull(df), None).to_dict(orient="records")
@@ -119,7 +122,11 @@ def create_error_report(df: pd.DataFrame, Model: Any, df_name: str) -> pd.DataFr
     invalid_mask = error_report["validation_status"] == "Invalid"
     error_count = invalid_mask.sum()
     total_errors = error_report["val_error_count"].sum()
-    print(
-        f"Validated {len(error_report)} rows in {df_name}. {error_count} rows have {total_errors} total errors."
+    logger.info(
+        "Validated %d rows in %s. %d rows have %d total errors.",
+        len(error_report),
+        df_name,
+        error_count,
+        total_errors,
     )
     return error_report

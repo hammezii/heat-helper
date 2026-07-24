@@ -7,7 +7,9 @@ import pandas as pd
 
 # Import helper functions
 from .core import _string_contains_int, PUNCTUATION
+from .logger import get_logger, log_series_summary
 
+logger = get_logger(__name__)
 
 def format_name(text: str, errors: str = "raise") -> str | None:
     """Cleans the formatting of names. Strips extra whitespaces, converts to title case (with exceptions for names like McDonald and O'Reilly) and tidies any spaces around hyphens.
@@ -42,8 +44,10 @@ def format_name(text: str, errors: str = "raise") -> str | None:
         return working_text
     except TypeError:
         if errors == "ignore":
+            logger.debug("format_name: non-string input %r ignored, returning original", text)
             return text
         if errors == "coerce":
+            logger.debug("format_name: non-string input %r coerced to None", text)
             return None
         raise
 
@@ -73,8 +77,10 @@ def find_numbers_in_text(
         return check
     except TypeError:
         if errors == "ignore":
+            logger.debug("find_numbers_in_text: non-string input %r ignored, returning original", text)
             return text
         if errors == "coerce":
+            logger.debug("find_numbers_in_text: non-string input %r coerced to None", text)
             return None
         raise
 
@@ -107,8 +113,10 @@ def remove_numbers(
             return text
     except TypeError:
         if errors == "ignore":
+            logger.debug("remove_numbers: non-string input %r ignored, returning original", text)
             return text
         if errors == "coerce":
+            logger.debug("remove_numbers: non-string input %r coerced to None", text)
             return None
         raise
 
@@ -135,6 +143,18 @@ def create_full_name(
             middle_name = middle_name.fillna("")
         full_name_pd = first_name + " " + middle_name + " " + last_name
         full_name_pd = full_name_pd.str.replace(r"\s+", " ", regex=True).str.strip()
+
+        missing_count = int(full_name_pd.isna().sum())
+        blank_count = int((full_name_pd == "").sum())
+        log_series_summary(
+            logger,
+            "create_full_name",
+            len(full_name_pd),
+            joined=len(full_name_pd) - blank_count - missing_count,
+            blank=blank_count,
+            missing=missing_count,
+        )
+
         return full_name_pd
     if isinstance(first_name, str):
         name_parts = [
@@ -143,6 +163,11 @@ def create_full_name(
         full_name = " ".join(name_parts).strip()
         full_name = re.sub(r"\s+", " ", full_name)
         return full_name
+    logger.warning(
+        "create_full_name: first_name is %s, expected str or pd.Series; returning None",
+        type(first_name).__name__,
+    )
+    return None
 
 
 def remove_diacritics(input_text: str, errors: str = "raise") -> str | None:
@@ -165,8 +190,10 @@ def remove_diacritics(input_text: str, errors: str = "raise") -> str | None:
         return "".join([c for c in nfkd_form if unicodedata.category(c) != "Mn"])
     except TypeError:
         if errors == "coerce":
+            logger.debug("remove_diacritics: non-string input %r coerced to None", input_text)
             return None
         if errors == "ignore":
+            logger.debug("remove_diacritics: non-string input %r ignored, returning original", input_text)
             return input_text
         raise
 
@@ -196,7 +223,9 @@ def remove_punctuation(
         return cleaned
     except TypeError:
         if errors == "coerce":
+            logger.debug("remove_punctuation: non-string input %r coerced to None", text)
             return None
         if errors == "ignore":
+            logger.debug("remove_punctuation: non-string input %r ignored, returning original", text)
             return text
         raise

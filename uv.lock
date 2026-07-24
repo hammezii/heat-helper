@@ -223,10 +223,10 @@ docs = [
 
 [package.metadata]
 requires-dist = [
-    { name = "openpyxl", specifier = ">=3.1.5" },
+    { name = "openpyxl", specifier = "==3.1.5" },
     { name = "pandas", specifier = "==2.3.3" },
     { name = "pydantic", marker = "extra == 'validation'", specifier = "==2.12.5" },
-    { name = "rapidfuzz", specifier = ">=3.14.3" },
+    { name = "rapidfuzz", specifier = "==3.14.3" },
 ]
 provides-extras = ["validation"]
 

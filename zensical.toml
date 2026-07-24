@@ -51,7 +51,8 @@ nav = [
     "usage/duplicates.md",
     "usage/updates.md",
     "usage/file-processing.md",
-    "usage/validation.md"
+    "usage/validation.md",
+    "usage/logger.md"
     ]},
     {"API Documentation" = [
     "api-documentation/names-doc.md",
@@ -62,7 +63,8 @@ nav = [
     "api-documentation/duplicates-doc.md",
     "api-documentation/updates-doc.md",
     "api-documentation/file-processing-doc.md",
-    "api-documentation/validation-doc.md"
+    "api-documentation/validation-doc.md",
+    "api-documentation/logger-doc.md"
     ]},
     {"Development" = [
         "road-map.md"

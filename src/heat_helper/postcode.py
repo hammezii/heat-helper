@@ -4,6 +4,9 @@ import re
 # Import helper functions
 from heat_helper.core import _is_valid_postcode
 from heat_helper.exceptions import InvalidPostcodeError
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def format_postcode(postcode: str, errors: str = "raise") -> str | None:
@@ -42,7 +45,9 @@ def format_postcode(postcode: str, errors: str = "raise") -> str | None:
         
     except (InvalidPostcodeError, TypeError):
         if errors == "ignore":
+            logger.debug("format_postcode: invalid postcode or type error %r ignored, returning original", postcode)
             return postcode
         if errors == "coerce":
+            logger.debug("format_postcode: invalid postcode %r coerced to None", postcode)
             return None
         raise
