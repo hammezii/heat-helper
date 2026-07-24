@@ -40,8 +40,11 @@ jobs:
           # This also automatically installs heat_helper in editable mode.
           uv sync --group docs --extra validation
           
-          # 3. Build the site (Zensical looks for zensical.toml in the current dir)
+          # 2. Build the site (Zensical looks for zensical.toml in the current dir)
           uv run zensical build --clean
+
+          # 3. Test
+          test -f site/index.html || { echo "::error::Build produced no index.html"; exit 1; }
 
       - name: Upload to Pages
         uses: actions/upload-pages-artifact@v4 

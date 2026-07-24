@@ -1,5 +1,5 @@
 ---
-icon: material/search
+icon: material/math-log
 ---
 # Logger API
 This is the API reference for the heat_helper logger. You can find usage examples **[here](logger.md)**.

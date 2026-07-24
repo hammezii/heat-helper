@@ -1,5 +1,5 @@
 ---
-icon: material/search
+icon: material/math-log
 ---
 # Logger
 'heat_helper' has it's own built in logger, which is silent by default. The library providers functions to enable and disable logging, or you can configure it using the standard 'logging' module.

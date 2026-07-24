@@ -21,6 +21,7 @@ cover/
 
 # zensical documentation
 docs/site
+/site
 
 # Ruff stuff:
 .ruff_cache/
