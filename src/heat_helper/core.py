@@ -1,10 +1,14 @@
 import re
 from datetime import date
+import math
 import pandas as pd
 
 
 # Import helper functions
 from heat_helper.exceptions import InvalidYearGroupError, FELevelError
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
 # Get CURRENT_ACADEMIC_YEAR_START constant function defined here apart from others due to constant below
@@ -41,6 +45,16 @@ def _parse_year_group_to_int(year_group: str | int | pd.Series) -> int | pd.Seri
     """Internal helper to convert any year group input to an integer (0-13)."""
     if isinstance(year_group, pd.Series):
         return year_group.apply(_parse_year_group_to_int)
+
+    if isinstance(year_group, float):
+        if math.isnan(year_group):
+            raise TypeError("Input must be str or int, not NaN")
+        if year_group.is_integer():
+            year_group = int(year_group)
+            logger.debug("_parse_year_group_to_int: Float datatype: %s coerced to Int", year_group)
+        else:
+            raise InvalidYearGroupError(year_group)
+    
     if isinstance(year_group, str):
         if "level" in year_group.lower():
             raise FELevelError(year_group)
@@ -50,15 +64,16 @@ def _parse_year_group_to_int(year_group: str | int | pd.Series) -> int | pd.Seri
         match = re.search(r"\d+", clean_input)
         if not match:
             raise InvalidYearGroupError(year_group)
-        y_num = int(match.group())
+        int_year_group = int(match.group())
+        logger.debug("_parse_year_group_to_int: Str datatype %s coerced to %d", year_group, int_year_group)
     elif isinstance(year_group, int):
-        y_num = year_group
+        int_year_group = year_group
     else:
         raise TypeError(f"Input must be str or int, not {type(year_group).__name__}")
 
-    if not (0 <= y_num <= 13):
+    if not (0 <= int_year_group <= 13):
         raise InvalidYearGroupError(year_group)
-    return y_num
+    return int_year_group
 
 
 def _string_contains_int(string: str) -> bool:

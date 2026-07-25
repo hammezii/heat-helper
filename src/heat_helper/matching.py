@@ -321,11 +321,18 @@ def perform_school_age_range_fuzzy_match(
     Returns:
         Two DataFrames: first DataFrame is matched data, second is remaining data for onward matching.
     """
+
     # Type checking and error handling:
     if not isinstance(unmatched_df, pd.DataFrame) or not isinstance(
         heat_df, pd.DataFrame
     ):
         raise TypeError("unmatched_df and heat_df must be pandas DataFrames.")
+
+    # Copy originals in case df slice passed to this function
+    unmatched_df = unmatched_df.copy()
+    heat_df = heat_df.copy()
+
+    # Normalise HEAT dobs; assumes unmatched dobs have already been processed
     if not pd.api.types.is_datetime64_any_dtype(heat_df[heat_dob_col]):
         try:
             heat_df[heat_dob_col] = pd.to_datetime(heat_df[heat_dob_col]).dt.normalize()
@@ -346,10 +353,7 @@ def perform_school_age_range_fuzzy_match(
     if not unmatched_df.index.is_unique:
         raise FuzzyMatchIndexError("unmatched_df")
 
-    # Copy originals in case df slice passed to this function; tidy up school names to improve matching
-    unmatched_df = unmatched_df.copy()
-    heat_df = heat_df.copy()
-
+    # Tidy up school names to improve matching
     heat_df[heat_school_col] = (
         heat_df[heat_school_col]
         .astype(str)

@@ -109,8 +109,8 @@ def create_error_report(df: pd.DataFrame, Model: Any, df_name: str) -> pd.DataFr
             )
         # Date clean up
         for key, value in row_dict.items():
-            # If it's a pandas Timestamp or python datetime, convert to date
-            if isinstance(value, datetime) and type(value) is not datetime.date:
+            # datetime is a subclass of date; convert real datetimes/Timestamps to date
+            if isinstance(value, datetime):
                 try:
                     row_dict[key] = value.date()
                 except AttributeError:

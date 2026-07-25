@@ -30,7 +30,7 @@ def test_calc_current_academic_year_start(input_date, expected_year):
 
 
 def test_parse_year_group_error():
-    with pytest.raises(TypeError, match="str or int"): # Matches your current code typo
+    with pytest.raises(InvalidYearGroupError, match="Invalid year group"): # Matches your current code typo
         _parse_year_group_to_int(6.245)
 
 def test_parse_year_group_to_int_with_series():

@@ -511,10 +511,13 @@ def test_input_not_dataframe():
 
 
 def test_dob_conversion_success(unmatched_data, heat_data):
-    """Test the try/except block that converts strings to datetime."""
+    """String DOBs are accepted and converted internally, without mutating the
+    caller's frame."""
     heat_data["DOB"] = ["2008-01-01", "2009-05-05", "2008-12-12"]  # Strings
 
-    matches, _ = perform_school_age_range_fuzzy_match(
+    # Runs to completion: if the try/except conversion had failed, this would
+    # raise TypeError("'DOB' is not datetime and could not be converted.").
+    matches, remaining = perform_school_age_range_fuzzy_match(
         unmatched_data,
         heat_data,
         "School",
@@ -526,7 +529,11 @@ def test_dob_conversion_success(unmatched_data, heat_data):
         "HEAT_ID",
         "T",
     )
-    assert pd.api.types.is_datetime64_any_dtype(heat_data["DOB"])
+
+    # H-03 guard: conversion runs on an internal copy; caller's frame untouched.
+    assert pd.api.types.is_object_dtype(heat_data["DOB"])
+    # Function returned a well-formed result rather than raising on the strings.
+    assert remaining is not None
 
 
 def test_dob_conversion_failure(unmatched_data, heat_data):

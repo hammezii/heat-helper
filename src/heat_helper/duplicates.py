@@ -12,7 +12,7 @@ def find_duplicates(
     name_col: str | list[str],
     date_of_birth_col: str,
     postcode_col: str,
-    id_col: str = None,
+    id_col: str | None = None,
     threshold: int = 80,
     fuzzy_type: str = "permissive",
     twin_protection: bool = True,

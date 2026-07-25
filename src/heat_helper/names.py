@@ -124,50 +124,121 @@ def remove_numbers(
 def create_full_name(
     first_name: str | pd.Series,
     last_name: str | pd.Series,
-    middle_name: str | pd.Series = "",
-) -> str | pd.Series:
-    """Joins strings or pandas DataFrame columns into a 'Full Name' string or column of strings. Useful if you are going to be fuzzy matching names.
+    middle_name: str | pd.Series | None = None,
+) -> str | pd.Series | None:
+    """Join first, (optional) middle, and last names into a full name.
+
+    Two mutually exclusive modes:
+      * DataFrame mode: first_name, last_name AND (if given) middle_name are
+        all pd.Series of equal length and shared index. Returns a Series;
+        rows where every part is empty become pd.NA.
+      * Scalar mode: first_name and last_name are str, and (if given)
+        middle_name is str. Returns a str, or None if the result is empty.
+
+    A missing middle name (omitted, None, or NaN) is always treated as "" and a
+    usable full name is built from first + last. Mixing Series and str across
+    arguments is not allowed.
 
     Args:
-        first_name: First name.
-        last_name: Last name.
-        middle_name (optional): Middle name. Defaults to a blank string or blank pd.Series.
+        first_name: First name. str (scalar mode) or pd.Series (DataFrame mode).
+        last_name: Last name. Must be the same type as first_name.
+        middle_name (optional): Middle name. May be omitted or passed as
+            None/NaN to mean "no middle name". Otherwise must match the mode.
 
     Returns:
-        One string or Series of strings with all names joined.
-    """
-    if isinstance(first_name, pd.Series):
-        if isinstance(middle_name, str) and middle_name == "":
-            middle_name = pd.Series("", index=first_name.index)
-        if isinstance(middle_name, pd.Series):
-            middle_name = middle_name.fillna("")
-        full_name_pd = first_name + " " + middle_name + " " + last_name
-        full_name_pd = full_name_pd.str.replace(r"\s+", " ", regex=True).str.strip()
+        A joined full name: a str (or None if empty) in scalar mode, or a
+        Series of strings (empty rows as pd.NA) in DataFrame mode.
 
-        missing_count = int(full_name_pd.isna().sum())
-        blank_count = int((full_name_pd == "").sum())
+    Raises:
+        TypeError: On mixed argument types, or if first_name/last_name are not
+            both str or both pd.Series.
+        ValueError: If Series arguments differ in length or index.
+    """
+    first_is_series = isinstance(first_name, pd.Series)
+    last_is_series = isinstance(last_name, pd.Series)
+
+    if first_is_series != last_is_series:
+        raise TypeError(
+            "create_full_name: first_name and last_name must be the same type "
+            f"(both str or both pd.Series); got {type(first_name).__name__} and "
+            f"{type(last_name).__name__}."
+        )
+
+    series_mode = first_is_series
+
+    # A missing middle name (omitted / None / NaN scalar) -> empty of the right kind.
+    middle_absent = (
+        middle_name is None
+        or (isinstance(middle_name, float) and pd.isna(middle_name))
+    )
+    if middle_absent:
+        middle_name = pd.Series("", index=first_name.index) if series_mode else ""
+
+    # ---- DataFrame mode ----
+    if series_mode:
+        if not isinstance(middle_name, pd.Series):
+            raise TypeError(
+                "create_full_name: middle_name must be a pd.Series when "
+                f"first_name and last_name are Series; got {type(middle_name).__name__}."
+            )
+        index = first_name.index
+        for name, s in (("last_name", last_name), ("middle_name", middle_name)):
+            if len(s) != len(first_name):
+                raise ValueError(
+                    "create_full_name: all Series must be the same length; "
+                    f"'{name}' has length {len(s)}, first_name has {len(first_name)}."
+                )
+            if not s.index.equals(index):
+                raise ValueError(
+                    "create_full_name: Series arguments must share an index, but "
+                    f"'{name}' differs from 'first_name'. Reset indices "
+                    "(e.g. df.reset_index(drop=True)) before calling."
+                )
+
+        def _clean_part(part):
+            # Coerce to text, null/blank/"nan" -> "", then strip.
+            cleaned = part.astype("string").fillna("").str.strip()
+            return cleaned.mask(cleaned.str.lower() == "nan", "")
+
+        first = _clean_part(first_name)
+        middle = _clean_part(middle_name)
+        last = _clean_part(last_name)
+
+        full_name_pd = (first + " " + middle + " " + last)
+        full_name_pd = (
+            full_name_pd.str.replace(r"\s+", " ", regex=True)
+            .str.strip()
+            .astype("object")
+        )
+
+        empty_mask = full_name_pd == ""
+        empty_count = int(empty_mask.sum())
+        full_name_pd = full_name_pd.mask(empty_mask, pd.NA)
+
         log_series_summary(
             logger,
             "create_full_name",
             len(full_name_pd),
-            joined=len(full_name_pd) - blank_count - missing_count,
-            blank=blank_count,
-            missing=missing_count,
+            joined=len(full_name_pd) - empty_count,
+            empty=empty_count,
+        )
+        return full_name_pd
+
+    # ---- Scalar mode ----
+    if not (isinstance(first_name, str) and isinstance(last_name, str)):
+        raise TypeError(
+            "create_full_name: first_name and last_name must be str or pd.Series; "
+            f"got {type(first_name).__name__} and {type(last_name).__name__}."
+        )
+    if not isinstance(middle_name, str):
+        raise TypeError(
+            "create_full_name: middle_name must be str (or None) when first_name "
+            f"and last_name are str; got {type(middle_name).__name__}."
         )
 
-        return full_name_pd
-    if isinstance(first_name, str):
-        name_parts = [
-            str(part).strip() for part in [first_name, middle_name, last_name]
-        ]
-        full_name = " ".join(name_parts).strip()
-        full_name = re.sub(r"\s+", " ", full_name)
-        return full_name
-    logger.warning(
-        "create_full_name: first_name is %s, expected str or pd.Series; returning None",
-        type(first_name).__name__,
-    )
-    return None
+    parts = [p.strip() for p in (first_name, middle_name, last_name)]
+    full_name = re.sub(r"\s+", " ", " ".join(parts)).strip()
+    return full_name if full_name else None
 
 
 def remove_diacritics(input_text: str, errors: str = "raise") -> str | None:

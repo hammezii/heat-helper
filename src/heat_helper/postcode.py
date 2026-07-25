@@ -33,15 +33,16 @@ def format_postcode(postcode: str, errors: str = "raise") -> str | None:
                     f"Postcode must be a string, not {type(postcode).__name__}"
                 )
 
-        clean = re.sub(r"\s+", "", postcode)
-        clean = clean.upper().strip()
-        if len(clean) >= 3:
-            formatted = f"{clean[:-3]} {clean[-3:]}"
-            if not _is_valid_postcode(formatted):
-                raise InvalidPostcodeError(postcode)
-            return formatted
-        else:
+        clean = re.sub(r"\s+", "", postcode).upper().strip()
+
+        # A UK postcode without its space is 5-7 chars (e.g. M11AA .. EC1A1BB)
+        if not (5 <= len(clean) <= 7):
             raise InvalidPostcodeError(postcode)
+
+        formatted = f"{clean[:-3]} {clean[-3:]}"
+        if not _is_valid_postcode(formatted):
+            raise InvalidPostcodeError(postcode)
+        return formatted
         
     except (InvalidPostcodeError, TypeError):
         if errors == "ignore":
