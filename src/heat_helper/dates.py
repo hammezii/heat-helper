@@ -61,6 +61,7 @@ def calculate_dob_range_from_year_group(
         InvalidYearGroupError: Raised when `year_group` input cannot be parsed or is out of range.
         FELevelError: Raised if FE Levels are in `year_group`.
         TypeError: Raised if `year_group` cannot be parsed to a valid int.
+        ValueError: Raised if 'year_group' is an empty column (Series) in a pandas DataFrame.
 
     Returns:
         The date of birth range. First date is start of the academic year; second date is the end of the academic year. Example: 01/09/2013, 31/08/2014."""
@@ -70,6 +71,8 @@ def calculate_dob_range_from_year_group(
             raise TypeError(f"start_year must be an integer, not {type(start_year).__name__}")
         # Dataframe
         if isinstance(year_group, pd.Series):
+            if year_group.empty:
+                raise ValueError("year_group: column is empty, cannot calculate date of birth range.")
             results = year_group.apply(
                 calculate_dob_range_from_year_group,
                 start_year=start_year,
@@ -96,7 +99,7 @@ def calculate_dob_range_from_year_group(
         y_num = _parse_year_group_to_int(year_group)
         dob_start_year = int(start_year) - (y_num + 5)
         return date(dob_start_year, 9, 1), date(dob_start_year + 1, 8, 31)
-    except (InvalidYearGroupError, TypeError, FELevelError) as exc:
+    except (InvalidYearGroupError, TypeError, FELevelError, ValueError) as exc:
         if errors in ("coerce", "ignore"):
             logger.debug(
                 "calculate_dob_range_from_year_group: could not resolve %r (%s); returning None, None",

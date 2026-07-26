@@ -1,11 +1,13 @@
 import pytest
+import inspect
 import pandas as pd
+import subprocess
+import sys
 from datetime import datetime, date
-from typing import Any
 from pydantic import BaseModel
 from unittest import mock
 import heat_helper.validation as val
-import heat_helper
+import heat_helper as hh
 
 # --- Mock Models ---
 class SimpleModel(BaseModel):
@@ -74,8 +76,8 @@ def test_date_cleanup_and_edge_cases():
 
 @pytest.mark.parametrize("invalid_df, invalid_model, expected_error, match_str", [
     ("not a df", SimpleModel, TypeError, "must be a pandas DataFrame"),
-    (pd.DataFrame({"a": [1]}), LegacyModel, TypeError, "must be a Pydantic Model Class"),
-    (pd.DataFrame({"a": [1]}), "NotAClass", TypeError, "must be a Pydantic Model Class"),
+    (pd.DataFrame({"a": [1]}), LegacyModel, TypeError, "must be a subclass of pydantic.BaseModel"),
+    (pd.DataFrame({"a": [1]}), "NotAClass", TypeError, "not an instance of str"),
 ])
 def test_input_guards(invalid_df, invalid_model, expected_error, match_str):
     """Consolidated test for all early-exit TypeErrors."""
@@ -91,7 +93,8 @@ def test_missing_pydantic_logic():
 
 def test_pydantic_v2_check():
     """Tests the check for Pydantic V2 model_validate method."""
-    class MockV1Model(BaseModel): pass
+    class MockV1Model(BaseModel): 
+        pass
     df = pd.DataFrame({"name": ["Alice"]})
     
     with mock.patch("heat_helper.validation.hasattr", return_value=False):
@@ -103,7 +106,20 @@ def test_pydantic_v2_check():
 def test_init_lazy_load_wrapper():
     """Ensures the wrapper in __init__.py correctly passes through to validation.py."""
     df = pd.DataFrame({"id": [1]})
-    class TinyModel(BaseModel): id: int
+    class TinyModel(BaseModel): 
+        id: int
 
-    report = heat_helper.create_error_report(df, TinyModel, "init_test")
+    report = hh.create_error_report(df, TinyModel, "init_test")
     assert report.iloc[0]['validation_status'] == 'Valid'
+
+def test_import_error_report_doc():
+    assert str(inspect.signature(hh.create_error_report)) == \
+        "(df: pandas.core.frame.DataFrame, Model: Any, df_name: str) -> pandas.core.frame.DataFrame"
+    assert hh.create_error_report.__doc__ is not None
+
+def test_import_error_report():
+    out = subprocess.run(
+        [sys.executable, "-c",
+        "import sys, heat_helper; print('pydantic' in sys.modules)"],
+        capture_output=True, text=True).stdout.strip()
+    assert out == "False", "importing heat_helper must not import pydantic"

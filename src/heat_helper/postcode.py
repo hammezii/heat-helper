@@ -18,7 +18,7 @@ def format_postcode(postcode: str, errors: str = "raise") -> str | None:
 
     Raises:
         TypeError: Raised if postcode is not a string.
-        InvalidPostcodeError: Raised if postcode is not a valid length (5 to 7 chars).
+        InvalidPostcodeError: Raised if postcode is not a valid length (5 to 7 characters once spaces are removed) or does not match the UK postcode format.
 
     Returns:
         Cleaned postcode.

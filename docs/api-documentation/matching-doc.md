@@ -2,7 +2,7 @@
 icon: material/database-search
 ---
 # Matching API
-This is the API reference for all functions designed to help you match student data to HEAT records. You can find usage examples **[here](matching.md)**.
+This is the API reference for all functions designed to help you match student data to HEAT records. You can find usage examples **[here](../usage/matching.md)**.
 
 ::: heat_helper.matching.perform_exact_match
     options:

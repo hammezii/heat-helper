@@ -1,23 +1,38 @@
-import logging
-import sys
-from typing import TextIO
-
 """
 heat_helper follows the standard library-logging convention: it emits log
-records but never configures logging itself. By default the package is
-completely silent. Users opt in with `heat_helper.enable_logging()`, or by
-configuring the "heat_helper" logger through the standard `logging` module.
+records but never adds a handler or otherwise configures logging itself.
+
+Because the package attaches no handler, WARNING and above are shown on stderr
+by Python's built-in "last resort" handler when the user has configured no
+logging at all. This is deliberate: warnings from this package report problems
+that can corrupt a HEAT upload (for example the same HEAT Student ID being
+assigned to two different students), so they must not be silent by default.
+INFO and DEBUG remain silent until asked for.
+
+That fallback only applies when nothing else will handle the record. As soon as
+the user configures logging - `heat_helper.enable_logging()`, `logging.basicConfig()`,
+or their own handler on the "heat_helper" logger - their configuration takes over
+and nothing is emitted twice. A user who wants the package fully silent can add
+`logging.NullHandler()` to the "heat_helper" logger themselves.
+
+Note: the last resort handler writes the message text only, with no level or
+logger name prefix. Formatting is applied once the user configures logging.
 
 Log levels used by this package:
     DEBUG    Per-value decisions (a value coerced to None, a fallback taken).
              May fire once per row when applied to a pandas Series.
     INFO     One-per-call summaries of Series/DataFrame-wide operations.
     WARNING  Non-fatal problems the caller almost certainly wants to know about.
+             Visible by default; see above.
 
 Note: DEBUG records may include the data values being processed, which for
 this package can mean student names, dates of birth and postcodes. DEBUG is
 off by default and should be enabled deliberately.
 """
+
+import logging
+import sys
+from typing import TextIO
 
 PACKAGE_LOGGER_NAME = "heat_helper"
 
@@ -33,11 +48,11 @@ def _package_logger() -> logging.Logger:
     """Returns the top-level 'heat_helper' logger."""
     return logging.getLogger(PACKAGE_LOGGER_NAME)
 
-# Attach a NullHandler at import time. This is the ONLY import-time side
-# effect in this module. It stops Python's "last resort" handler from writing
-# unconfigured WARNING+ records to stderr, without producing any output of its
-# own. It does not prevent a user's own handlers from working.
-_package_logger().addHandler(logging.NullHandler())
+
+# Deliberately no NullHandler here, and no other import-time side effects.
+# Attaching one would count as a handler and so suppress Python's "last resort"
+# handler, which is what makes WARNING+ visible to users who have not configured
+# logging. See the module docstring.
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -72,9 +87,10 @@ def enable_logging(
 ) -> logging.Logger:
     """Turns on heat_helper's log output.
 
-    heat_helper is silent by default. Call this to see what the cleaning and
-    matching functions are doing - particularly useful when using
-    `errors='coerce'`, where values are silently converted to None.
+    By default heat_helper shows warnings only, and without any formatting.
+    Call this to see what the cleaning and matching functions are doing -
+    particularly useful when using `errors='coerce'`, where values are silently
+    converted to None - and to get level and module names on every line.
 
     Only the 'heat_helper' logger is touched; the root logger and any logging
     your own application has configured are left alone. Calling this function
@@ -98,11 +114,6 @@ def enable_logging(
     Returns:
         The configured 'heat_helper' logger, so it can be tuned further.
 
-    Example:
-        >>> import heat_helper as hh
-        >>> hh.enable_logging("DEBUG")
-        >>> hh.format_name(123, errors="coerce")
-        DEBUG heat_helper.names: format_name: non-string input 123 coerced to None
     """
     logger = _package_logger()
 
@@ -139,8 +150,16 @@ def disable_logging() -> logging.Logger:
     """Turns heat_helper's log output back off.
 
     Removes the handler added by `enable_logging()` and restores the default
-    behaviour, where records propagate to whatever logging the host
-    application has configured. Safe to call when logging was never enabled.
+    behaviour, where records propagate to whatever logging the host application
+    has configured. Safe to call when logging was never enabled.
+
+    Note this restores the default, which is not complete silence: INFO and
+    DEBUG stop, but warnings remain visible, because they report problems that
+    can corrupt a HEAT upload. To silence the package entirely, add a null
+    handler yourself:
+
+        import logging
+        logging.getLogger("heat_helper").addHandler(logging.NullHandler())
 
     Returns:
         The 'heat_helper' logger.

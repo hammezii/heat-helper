@@ -4,6 +4,104 @@ icon: material/clock-outline
 # Changelog
 This page contains information about each release of `heat_helper`.
 
+## v0.3.0
+Release date: 2026-07-26
+
+### ⚠️ Breaking changes
+
+- **Warnings are now shown by default; the package is no longer completely silent.**
+  `heat_helper` warns about problems that can corrupt a HEAT upload — the same HEAT
+  Student ID matched to two different students, duplicate HEAT records, a date column
+  converted automatically — and these were invisible unless you had called
+  `enable_logging()`, which most users never did. The package still adds no handler and
+  configures nothing: it simply no longer suppresses Python's built-in fallback for
+  unhandled warnings. INFO and DEBUG are unchanged and stay silent until you ask for them.
+  If you had already configured logging, nothing changes and nothing is shown twice. To
+  silence the package completely, add `logging.NullHandler()` to the `"heat_helper"`
+  logger. Note that `disable_logging()` now means "back to default" rather than "silent",
+  so warnings survive it.
+- **`perform_school_age_range_fuzzy_match` no longer discards matches that share a HEAT
+  record.** Previously, when two rows both matched the same HEAT record, only the
+  highest-scoring row was returned and the other was pushed into the remaining unmatched
+  DataFrame — where it read as "not found in HEAT", risking a duplicate HEAT record being
+  created for a student who already had one. Both rows are now returned as matches and a
+  warning names the shared HEAT ID instead. This matters because the same student
+  legitimately appears on more than one row when your data covers several activities, and
+  every one of those rows should carry the same HEAT Student ID. If you relied on the old
+  behaviour to de-duplicate, do that on the returned matches DataFrame instead.
+- **`perform_exact_match` now raises `ValueError` if `heat_id_col` already exists in
+  `unmatched_df`.** Matched IDs come back under the `HEAT: ` prefix, so an existing column
+  of the same name was ambiguous. Drop or rename it before calling.
+- **`perform_fuzzy_match` now raises `FilterColumnMismatchError` for empty filter
+  columns.** Passing empty lists to `left_filter_cols`/`right_filter_cols` previously ran
+  with no blocking at all; at least one column is now required.
+- **`perform_school_age_range_fuzzy_match` validates all its columns before doing any
+  work**, including `heat_id_col`, which was not checked at all. Missing columns now raise
+  `ColumnDoesNotExistError` rather than failing later with a less helpful error.
+- **Booleans are now rejected as year groups.** `clean_year_group` and
+  `calculate_dob_range_from_year_group` raise `TypeError` for `True`/`False`, which were
+  previously treated as the integers 1 and 0.
+- **`clean_year_group(errors='ignore')` returns your original value unchanged.** It
+  previously converted it to a string, so an unrecognised integer came back as `'12'`
+  rather than `12`.
+
+### Bug fixes
+
+- **`perform_fuzzy_match` now warns when one HEAT record is matched by several rows.**
+  It previously assigned the same HEAT ID to multiple rows silently, so two different
+  students could be given the same ID with nothing to flag it. Matching results are
+  unchanged — the warning is new. Turn on logging with `hh.enable_logging()` to see it.
+- **Both fuzzy matching functions now handle a HEAT export with a duplicate index.**
+  Previously this produced malformed rows in the matches DataFrame. The index of your HEAT
+  DataFrame is no longer used for anything visible in the output.
+- **`create_error_report` no longer misaligns results on filtered DataFrames.** The report
+  columns were built with a fresh index, so validating a DataFrame whose index was not
+  `0, 1, 2...` (for example one you had filtered) attached error details to the wrong rows
+  or produced blanks. Results now keep your DataFrame's own index.
+- **`create_error_report` gives clearer errors for a bad `Model`.** Passing an *instance*
+  of a Pydantic model, or a class that is not a Pydantic model, now produces messages that
+  say which of the two is wrong.
+- **`find_duplicates` works with non-string ID columns.** The grouping logic joins IDs into
+  strings, so passing an integer `id_col` previously produced incorrect duplicate lists.
+  IDs are now normalised internally and your column is returned untouched.
+- **`find_duplicates` numbers rows correctly on filtered DataFrames.** The generated
+  `Duplicate ID` column was built without reference to your index, so on a DataFrame whose
+  index was not `0, 1, 2...` the IDs were misaligned or missing.
+- **`calculate_dob_range_from_year_group` handles an empty column.** Passing an empty
+  Series now raises `ValueError` (or returns `None` under `errors='coerce'`/`'ignore'`)
+  rather than failing unclearly.
+- **`format_name` handles apostrophes correctly.** Possessives and initials are no longer
+  given a stray capital — `"JAMES'S"` returns `"James's"`, not `"James'S"` — while
+  `O'Reilly` and `McDonald` are still preserved. There is deliberately no rule for `Mac`
+  names, as capitalisation of the following letter is inconsistent and cannot be inferred.
+- **`enable_logging` docstring no longer shows a misleading example**, and the explanation
+  of the package's logging conventions in `logger.py` is now a real module docstring.
+- **The `heat_helper` logger no longer has a handler attached at import.** This was what
+  suppressed warnings for unconfigured users; see the breaking change above.
+
+### New features
+
+- **Optional `heat_id_col` argument on `perform_fuzzy_match`.** Not used for matching —
+  it only lets the shared-HEAT-record warning name the HEAT IDs affected rather than
+  reporting a count. Omitting it leaves the function's behaviour exactly as before.
+- **`heat_helper.create_error_report` is now resolved lazily.** Importing `heat_helper` no
+  longer pulls in `validation.py` (and therefore the optional `pydantic` dependency) until
+  you actually use the function, and the function keeps its own signature and docstring.
+
+### Documentation
+
+- Corrected the argument names (`unmatched_df`, not `new_df`) in the `perform_exact_match`
+  documentation, and documented the exceptions each matching function raises.
+- Documented the behaviour of `find_duplicates` with missing dates of birth or postcodes,
+  and the fact that it returns rows in sorted order rather than input order. Corrected the
+  threshold range and the example output in the duplicates usage page.
+- Clarified `format_postcode`'s length rule (5–7 characters once spaces are removed) and
+  that it also checks the UK postcode format.
+- Noted that `create_error_report` returns an empty DataFrame unchanged, with no added
+  columns.
+- Fixed broken links in the changelog, and corrected the data validation summary in the
+  README.
+
 ## v0.2.0
 Release date: 2026-07-25
 
@@ -52,7 +150,7 @@ Release date: 2026-07-25
 ## v.0.1.3
 Release date: 2026-07-24
 
-- **Implemented Logging**: 'heat_helper' now has native logging which you can figure with the built-in 'enable_logging' function or the standard 'logging' module.
+- **Implemented Logging**: 'heat_helper' now has native logging which you can figure with the built-in 'enable_logging' function or the standard 'logging' module. See [usage documentation](../usage/logger.md) or [API documentation](../api-documentation/logger-doc.md).
 
 ## v0.1.2
 Release date: 2026-02-13
@@ -64,7 +162,7 @@ Release date: 2026-02-12
 
 First update to `heat_helper`. 
 
-- **Data Validation**: `pydantic` is now an optional dependency. This gives you access to a function which generates an error report by passing your data to a `pydantic` model. See [usage documentation](validation.md) or [API documentation](validation-doc.md).
+- **Data Validation**: `pydantic` is now an optional dependency. This gives you access to a function which generates an error report by passing your data to a `pydantic` model. See [usage documentation](../usage/validation.md) or [API documentation](../api-documentation/validation-doc.md).
 - **Bug fixes**: 
     - fixed some minor issues with the duplicates function which used incorrect variable names; 
     - improved error handling in name functions; 

@@ -11,7 +11,7 @@ Once installed, you can import `heat_helper`:
 import heat_helper as hh
 ```
 
-Then use any of the functions in the [usage documentation](names.md).
+Then use any of the functions in the [usage documentation](../usage/names.md).
 
 !!! Example
 
@@ -68,13 +68,19 @@ A simple scenario in which you might use `heat_helper` would be to clean activit
     #     dustin  HENDERSON     2000-06-06   F6 6FF
 
     # Clean the data
-    df['First Name'] = df['First Name'].apply(hh.format_name)
-                                        .apply(hh.remove_numbers)
-                                        .apply(hh.remove_punctuation)
+    df['First Name'] = (
+        df['First Name']
+        .apply(hh.format_name)
+        .apply(hh.remove_numbers)
+        .apply(hh.remove_punctuation)
+    )
 
-    df['Last Name'] = df['Last Name'].apply(hh.format_name)
-                                    .apply(hh.remove_numbers)
-                                    .apply(hh.remove_punctuation)
+    df['Last Name'] = (
+        df['Last Name']
+        .apply(hh.format_name)
+        .apply(hh.remove_numbers)
+        .apply(hh.remove_punctuation)
+    )
                                     
     df['Postcode'] = df['Postcode'].apply(hh.format_postcode)
 
@@ -109,11 +115,11 @@ A simple scenario in which you might use `heat_helper` would be to clean activit
     # This returns their HEAT IDs, which you can paste into your 
     # HEAT upload template to register them to the activity:
 
-    # First Name   Last Name Date of Birth Postcode     Match Type HEAT: HEAT ID
-    #       Jane         Doe    2000-01-01  AA1 1AA  Exact Match           #1
-    #       Mike     Wheeler    2000-02-02  BB2 2BB  Exact Match           #2
-    #      Lucas    Sinclair    2000-03-03   C3 3CC  Exact Match           #3
-    #      Robin     Buckley    1997-04-04  DD4 4DD  Exact Match           #4
-    #      Steve  Harrington    1997-05-05   E5 5EE  Exact Match           #5
-    #     Dustin   Henderson    2000-06-06   F6 6FF  Exact Match           #6
+    # First Name   Last Name Date of Birth Postcode   Match Type HEAT: Student HEAT ID
+    #       Jane      Hopper    2000-01-01  AA1 1AA  Exact Match                    #1
+    #       Mike     Wheeler    2000-02-02  BB2 2BB  Exact Match                    #2
+    #      Lucas    Sinclair    2000-03-03   C3 3CC  Exact Match                    #3
+    #      Robin     Buckley    1997-04-04  DD4 4DD  Exact Match                    #4
+    #      Steve  Harrington    1997-05-05   E5 5EE  Exact Match                    #5
+    #     Dustin   Henderson    2000-06-06   F6 6FF  Exact Match                    #6
     ```

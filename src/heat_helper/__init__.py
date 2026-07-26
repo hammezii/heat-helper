@@ -27,9 +27,15 @@ from .updates import get_updates, get_contextual_updates
 
 from .duplicates import find_duplicates
 
-def create_error_report(*args, **kwargs):
-    from .validation import create_error_report
-    return create_error_report(*args, **kwargs)
+def __getattr__(name):
+    # Deferred so that importing heat_helper does not import validation.py,
+    # which requires the optional 'pydantic' dependency. Returning the real
+    # function (rather than wrapping it) keeps its signature and docstring.
+    if name == "create_error_report":
+        from .validation import create_error_report
+
+        return create_error_report
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 # Import *
 __all__ = [

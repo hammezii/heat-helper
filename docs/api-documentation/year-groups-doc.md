@@ -2,7 +2,7 @@
 icon: material/account-group-outline
 ---
 # Year Groups API
-This is the API reference for all functions designed to be used on year groups. You can find usage examples **[here](year-groups.md)**.
+This is the API reference for all functions designed to be used on year groups. You can find usage examples **[here](../usage/year-groups.md)**.
 
 ::: heat_helper.yeargroup.clean_year_group
     options:

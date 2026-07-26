@@ -28,6 +28,7 @@ else:
 def create_error_report(df: pd.DataFrame, Model: Any, df_name: str) -> pd.DataFrame:
     """Uses a Pydantic model to validate each row of a DataFrame and generates an error report. 
     Returns the original DataFrame with three new columns: 'val_error_count', 'val_error_details', and 'validation_status'.
+    Note: if an empty DataFrame is accidentally passed to this function it is returned as is with no additional columns.
 
     Args:
         df: The DataFrame you want to validate.
@@ -54,14 +55,15 @@ def create_error_report(df: pd.DataFrame, Model: Any, df_name: str) -> pd.DataFr
     if not isinstance(df, pd.DataFrame):
         raise TypeError(f"Input 'df' must be a pandas DataFrame, not {type(df)}")
 
-    # Check if Model is actually a Pydantic class
-    try:
-        if not issubclass(Model, _PydanticBaseModel):
-            raise TypeError("Input 'Model' must be a subclass of pydantic.BaseModel")
-    except TypeError:
-        # Catches cases where Model is not a class (e.g., an instance)
+    if not isinstance(Model, type):
         raise TypeError(
-            f"Input 'Model' must be a Pydantic Model Class, not {type(Model)}"
+            f"Input 'Model' must be a Pydantic Model Class, not an instance of "
+            f"{type(Model).__name__}"
+        )
+    if not issubclass(Model, _PydanticBaseModel):
+        raise TypeError(
+            f"Input 'Model' must be a subclass of pydantic.BaseModel, not "
+            f"{Model.__name__}"
         )
 
     if not hasattr(ValidatedModel, "model_validate"):
@@ -70,7 +72,7 @@ def create_error_report(df: pd.DataFrame, Model: Any, df_name: str) -> pd.DataFr
         )
 
     if df.empty:
-        logger.warning("Skipping validation: %s is empty.", df_name)
+        logger.warning("Skipping validation: %s is empty. Returning original dataframe.", df_name)
         return df
 
     # Create empty list to collect error reports
@@ -118,7 +120,7 @@ def create_error_report(df: pd.DataFrame, Model: Any, df_name: str) -> pd.DataFr
         # Add row to the list to be joined
         list_for_joining.append(row_dict)
 
-    error_report = pd.DataFrame.from_records(list_for_joining)
+    error_report = pd.DataFrame.from_records(list_for_joining, index=df.index)
     invalid_mask = error_report["validation_status"] == "Invalid"
     error_count = invalid_mask.sum()
     total_errors = error_report["val_error_count"].sum()

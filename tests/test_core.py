@@ -24,14 +24,37 @@ from heat_helper.exceptions import InvalidYearGroupError
         (date(2030, 10, 15), 2030),
     ],
 )
+
 def test_calc_current_academic_year_start(input_date, expected_year):
     """Checks that the academic year resets correctly every September."""
     assert _calc_current_academic_year_start(input_date) == expected_year
 
+@pytest.mark.parametrize(
+    "year_group_in, year_group_out",
+    [
+        ('Year 10', 10),
+        ('10', 10),
+        (10.0, 10),
+        ('Y11', 11),
+        ('Reception', 0)
+    ],
+)
+
+def test_parse_year_group_general(year_group_in, year_group_out):
+    """Checks that year groups are returns as ex[ected]."""
+    assert _parse_year_group_to_int(year_group_in) == year_group_out
 
 def test_parse_year_group_error():
     with pytest.raises(InvalidYearGroupError, match="Invalid year group"): # Matches your current code typo
         _parse_year_group_to_int(6.245)
+
+def test_parse_year_group_error_number_not_in_range():
+    with pytest.raises(InvalidYearGroupError, match="Invalid year group"): # Matches your current code typo
+        _parse_year_group_to_int(16)
+
+def test_parse_year_group__bool_error():
+    with pytest.raises(TypeError, match="Input must be str or int"): # Matches your current code typo
+        _parse_year_group_to_int(True)
 
 def test_parse_year_group_to_int_with_series():
     # Arrange: Create a series with mixed valid inputs

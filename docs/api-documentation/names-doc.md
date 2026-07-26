@@ -2,7 +2,7 @@
 icon: material/signature-text
 ---
 # Names API
-This is the API reference for all functions designed to be used on names. You can find usage examples **[here](names.md)**.
+This is the API reference for all functions designed to be used on names. You can find usage examples **[here](../usage/names.md)**.
 
 ::: heat_helper.names.format_name
     options:

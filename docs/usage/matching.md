@@ -7,13 +7,15 @@ These functions are used to match student data to your HEAT records using the St
 ## Perform Exact Match
 This function is used to exactly match student data to records in your HEAT Student Export. It uses the `pandas` `merge` function, which joins two DataFrames on common columns. You can use any number of columns to perform the join, but the number of columns passed to `left_join_cols` and `right_join_cols` must match. You can choose to return just the HEAT IDs from the HEAT export, or all columns in your HEAT Sudent Export using the `verify` argument. 
 
+Turn on logging with 'hh.enable_logging()' to see progress reports and useful messages about how many students have been matched. See [API documentation](../api-documentation/logger-doc.md#heat_helper.logger.enable_logging).
+
 !!! Tip
     If you want to return all columns from your Student Export you may wish to drop some columns from the DataFrame before you use this function, as the resulting DataFrame may have a higher number of columns. For example, you might only wish to include columns needed to verify the match, or ones which you might want to check for updates if you're using this function on new data you want to upload to HEAT.
 
 This function returns two DataFrames: one containing your matches, and one containing remaining student data which was not matched in its original format. This can be used for matching again, for example by using this function again with less strict criteria, or by using any other matching functions. The DataFrame containing your matches includes a column called 'Match Type' populated with whatever text you passed to `match_desc`. This can be useful if you join results of multiple matching functions together to one DataFrame to verify later: it helps you identify which matches were returned by which functions.
 
 !!! Note
-    The function assumes the column in the HEAT export with the IDs in is called 'Student HEAT ID'. If for any reason your column is not called this, you should set the name by passing a value to the optional `heat_id_col` argument. See [API documentation](matching-doc.md#heat_helper.matching.perform_exact_match).
+    The function assumes the column in the HEAT export with the IDs in is called 'Student HEAT ID'. If for any reason your column is not called this, you should set the name by passing a value to the optional `heat_id_col` argument. See [API documentation](../api-documentation/matching-doc.md#heat_helper.matching.perform_exact_match).
 
 === "Example with pandas DataFrames"
 
@@ -21,6 +23,8 @@ This function returns two DataFrames: one containing your matches, and one conta
     import heat_helper as hh
     from datetime import date
     import pandas as pd
+
+    hh.enable_logging()
 
     print(f"------ NEW DATA")
     print(new_data)
@@ -34,7 +38,7 @@ This function returns two DataFrames: one containing your matches, and one conta
         ['Full Name', 'Date of Birth', 'Postcode'],
         ['Student Full Name', 'Student Date of Birth', 'Student Postcode'],
         'Exact match',
-        student_heat_id_col='ID'
+        heat_id_col='ID'
     )
 
     print(f"------ MATCHED DATA")
@@ -51,7 +55,7 @@ This function returns two DataFrames: one containing your matches, and one conta
     #3   Sarah Brown    2008-11-13  DD4 4DD
     #
     #------ HEAT DATA
-    #          ID Student Full Name Student Date of Birth Student Postcode  
+    #          ID Student Full Name Student Date of Birth Student Postcode
     #0  #00000001          Jane Doe            2008-09-02          AA1 1AA
     #1  #00000002     Michael Jones            2009-07-25          BB2 2BB
     #2  #00000003      Thomas Smith            2008-12-25          CC3 3CC
@@ -59,18 +63,17 @@ This function returns two DataFrames: one containing your matches, and one conta
     #4  #00000005          Jane Doe            2008-09-02          AA1 1AA
     #
     #------ STARTING MATCH
-    #   Attempting match: Exact match:
-    #     ...3 students found in HEAT data
-    #     ...1 students left to find.
-    #     WARNING: 1 extra record(s) created. Some student matched to multiple 
-    #       HEAT records. Check HEAT data for duplicates.
+    # INFO heat_helper.matching: Attempting to match 4 students. Match type: Exact match.
+    # INFO heat_helper.matching: 3 students found in HEAT data
+    # INFO heat_helper.matching: 1 students left to find. 
+    # WARNING heat_helper.matching: 1 extra record(s) created. Some student matched to multiple HEAT records. Check HEAT data for duplicates.
     #
     #------ MATCHED DATA
-    #      Full Name Date of Birth Postcode         ID   Match Type
-    #0      Jane Doe    2008-09-02  AA1 1AA  #00000001  Exact match
-    #1      Jane Doe    2008-09-02  AA1 1AA  #00000005  Exact match
-    #2  Thomas Smith    2008-12-25  CC3 3CC  #00000003  Exact match
-    #3   Sarah Brown    2008-11-13  DD4 4DD  #00000004  Exact match
+    #      Full Name Date of Birth Postcode   Match Type   HEAT: ID
+    #0      Jane Doe    2008-09-02  AA1 1AA  Exact match  #00000001
+    #1      Jane Doe    2008-09-02  AA1 1AA  Exact match  #00000005
+    #2  Thomas Smith    2008-12-25  CC3 3CC  Exact match  #00000003
+    #3   Sarah Brown    2008-11-13  DD4 4DD  Exact match  #00000004
     #
     #------ UNMATCHED DATA
     #    Full Name Date of Birth Postcode
@@ -78,7 +81,14 @@ This function returns two DataFrames: one containing your matches, and one conta
     ```
 
 ## Perform Fuzzy Match
-This function uses fuzzy matching on student names to find students in your HEAT Student Export. In order to improve the likelihood of matches, the function uses any number of columns to filter the pool of possible matches, and then returns the best match from this pool. It only returns one match (the best match) per student in your new DataFrame.
+This function uses fuzzy matching on student names to find students in your HEAT Student Export. In order to improve the likelihood of matches, the function uses any number of columns to filter the pool of possible matches, and then returns the best match from this pool. It only returns one match (the best match) per row in your new DataFrame.
+
+Turn on logging with 'hh.enable_logging()' to see progress reports and useful messages about how many students have been matched. See [API documentation](../api-documentation/logger-doc.md#heat_helper.logger.enable_logging).
+
+!!! Note
+    The same HEAT record can be matched by more than one row of your data. This is expected if your data contains the same student more than once — for example a master register covering several activities, where each row is one student at one activity and every row should come back with the same HEAT Student ID. The function warns you when this happens but does not remove anything, so you can check whether the shared ID is correct. If your data should not contain the same student twice, treat the warning as a sign that two different students may be about to be given the same HEAT ID.
+
+    To see *which* HEAT IDs are affected, pass the name of your ID column to the optional `heat_id_col` argument. Without it, the warning reports a count only. This argument is not used for matching — the function returns all HEAT columns either way. See [API documentation](../api-documentation/matching-doc.md#heat_helper.matching.perform_fuzzy_match).
 
 !!! Tip
     Unlike the exact match function above, this function returns all columns from the HEAT Student Export as it assumes you will need to verify the matches. This means the resulting DataFrame may have a high number of columns. You might wish to drop some columns from your HEAT Student Export before using this function. For example, you might only wish to include columns needed to verify the match, or ones which you might want to check for updates if you're using this function on new data you want to upload to HEAT.
@@ -86,7 +96,7 @@ This function uses fuzzy matching on student names to find students in your HEAT
 You can control the strictness of the match with the `threshold` argument. This defaults to 80, but you may want to experiment with different values depending on how many columns you are using to control the match pool. If you are only looking for name fuzzy matches where Date of Birth and Postcode matches, you could lower the threshold to 70, as there will be a limited pool of potential matches, for example.
 
 !!! Warning
-    Before using this function you must create a column in both DataFrames which contains the students' full names. You can use the [create full name](names.md#create-full-name) function to do this.
+    Before using this function you must create a column in both DataFrames which contains the students' full names. You can use the [create full name](../usage/names.md#create-full-name) function to do this.
 
 This function returns two DataFrames: one containing your matches, and one containing remaining student data which was not matched in its original format. This can be used for matching again, for example by using this function again with less strict criteria, or by using any other matching function.
 
@@ -143,10 +153,7 @@ The matches DataFrame includes a column called Fuzzy Score which tells you the p
     #5  #00000006  Sarah Jane Brown            2008-11-13          DD4 4DD
     #
     #------ STARTING MATCH
-    #Attempting fuzzy match where ['Date of Birth', 'Postcode'] match HEAT data.
-    #    ...4 students found in HEAT data.
-    #    ...1 students left to find.
-    #
+    # 
     #------ MATCHED DATA
     #      Full Name Date of Birth Postcode  ... Fuzzy Score  Match Type
     #0      Jane Doe    2008-09-02  AA1 1AA  ...      100.00  Fuzzy Name DOB+Postcode match
@@ -162,13 +169,15 @@ The matches DataFrame includes a column called Fuzzy Score which tells you the p
 ## Perform School Age Range Fuzzy Match
 This function fuzzy matches student names to your HEAT Export by grouping potential matches by school and year group. It is particularly useful if you do not have a student date of birth but you do know which year group they are in. The function uses year group to create a date of birth range to search within from the student's school.
 
+Turn on logging with 'hh.enable_logging()' to see progress reports and useful messages about how many students have been matched. See [API documentation](../api-documentation/logger-doc.md#heat_helper.logger.enable_logging).
+
 !!! Tip
     You can either use School Name or School ID to group students by school, but you should ensure that the data you are trying to match to your HEAT Student Export contains school names or IDs exactly as they appear on HEAT, or the function will not work.
 
 You can control the strictness of the match with the `threshold` argument. This defaults to 80, but you may want to experiment with different values depending on how strict you want the fuzzy match to be.
 
 !!! Warning
-    Before using this function you must create a column in both DataFrames which contains the students' full names. You can use the [create full name](names.md#create-full-name) function to do this.
+    Before using this function you must create a column in both DataFrames which contains the students' full names. You can use the [create full name](../usage/names.md#create-full-name) function to do this.
 
 This function returns two DataFrames: one containing your matches, and one containing remaining student data which was not matched in its original format. This can be used for matching again, for example by using this function again with less strict criteria, or by using any other matching function.
 
@@ -178,7 +187,10 @@ This function returns two DataFrames: one containing your matches, and one conta
 The matches DataFrame includes a column called Fuzzy Score which tells you the percentage match between the names. Higher means the names are more similar. 100 means the names match exactly. It also includes a column called 'Match Type' populated with whatever text you passed to `match_desc`. This can be useful if you join results of multiple matching functions together to one DataFrame to verify later: it helps you identify which matches were returned by which functions.
 
 !!! Note
-    The function assumes the column in the HEAT export with the IDs in is called 'Student HEAT ID'. If for any reason your column is not called this, you should set the name by passing a value to the `heat_id_col` argument. See [API documentation](matching-doc.md#heat_helper.matching.perform_school_age_range_fuzzy_match).
+    The function assumes the column in the HEAT export with the IDs in is called 'Student HEAT ID'. If for any reason your column is not called this, you should set the name by passing a value to the `heat_id_col` argument. See [API documentation](../api-documentation/matching-doc.md#heat_helper.matching.perform_school_age_range_fuzzy_match).
+
+!!! Note
+    As with the fuzzy match function above, each row of your data receives at most one HEAT match, but the same HEAT record can be matched by more than one row. This is expected if your data contains the same student more than once — for example a master register covering several activities. The function warns you, naming the HEAT IDs affected, but does not remove anything, so you can check whether the shared ID is correct.
 
 === "Example with pandas DataFrame"
 

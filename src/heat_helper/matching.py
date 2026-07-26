@@ -12,6 +12,47 @@ from .logger import get_logger
 
 logger = get_logger(__name__)
 
+
+def _warn_reused_heat_records(
+    final_matches: pd.DataFrame, heat_id_col: str | None = None
+) -> None:
+    """Warns when one HEAT record is the best match for more than one student row.
+
+    Each student row only ever receives one HEAT match, but the same HEAT record can be the best match for several rows.
+    That is expected when the data holds one row per student per activity; otherwise it may mean two different students are about to be given the same HEAT ID.
+    This warns only - no matches are removed or altered.
+
+    Args:
+        final_matches: The assembled matches, still carrying '__HEAT_INDEX__' and HEAT columns under the '_HEAT' suffix. Must be called before the 'HEAT: ' rename.
+        heat_id_col (optional): Name of the ID column in heat_df, if known. When given, the affected HEAT IDs are named in the warning; otherwise only a count is reported.
+    """
+    if "__HEAT_INDEX__" not in final_matches.columns:
+        return
+
+    reused_mask = final_matches["__HEAT_INDEX__"].duplicated(keep=False)
+    if not reused_mask.any():
+        return
+
+    # Count distinct HEAT records affected, not the number of extra rows
+    reused_count = final_matches.loc[reused_mask, "__HEAT_INDEX__"].nunique()
+
+    suffixed_id_col = f"{heat_id_col}{HEAT_SUFFIX}" if heat_id_col else None
+    if suffixed_id_col and suffixed_id_col in final_matches.columns:
+        reused_ids = (
+            final_matches.loc[reused_mask, suffixed_id_col].drop_duplicates().tolist()
+        )
+        logger.warning(
+            "%d HEAT record(s) matched to more than one student row: %s. This is expected if your data contains the same student more than once (for example a register covering several activities). Otherwise, check these rows before assigning IDs - two different students may be about to be given the same HEAT ID.",
+            reused_count,
+            reused_ids,
+        )
+    else:
+        logger.warning(
+            "%d HEAT record(s) matched to more than one student row. This is expected if your data contains the same student more than once (for example a register covering several activities). Otherwise, check these rows before assigning IDs - two different students may be about to be given the same HEAT ID. Pass 'heat_id_col' to name the HEAT IDs affected.",
+            reused_count,
+        )
+
+
 def perform_exact_match(
     unmatched_df: pd.DataFrame,
     heat_df: pd.DataFrame,
@@ -29,16 +70,17 @@ def perform_exact_match(
     Args:
         unmatched_df: The DataFrame containing the students you want to search for.
         heat_df: The DataFrame containing your HEAT Student Export.
-        left_join_cols: Columns in new_df you want to match on.
+        left_join_cols: Columns in unmatched_df you want to match on.
         right_join_cols: Columns in heat_df you want to match on.
         match_desc: A description of the match; added to a 'Match Type' col in the returned matched DataFrame. Should be descriptive to help you verify matches later, especially if joining multiple returns of this function and exporting to a .csv or Excel file.
         verify (optional): Defaults to False. Controls whether to return all columns from heat_df to the matched DataFrame for verifying of matches. Useful if you are performing a less exact match and you want to verify the returned students. Also useful if you are using this function or perform_fuzzy_match function and want to join results together (column structure will be the same).
         heat_id_col (optional): Defaults to 'Student HEAT ID'. Use this if the column in your HEAT Export with the Student ID in is not called 'Student HEAT ID'.
 
     Raises:
-        TypeError: Raised if new_df or heat_df are not pandas DataFrames.
-        ColumnDoesNotExistError: Raised if a column you are trying to use for matching does not exist in either new_df or heat_df.
-
+        TypeError: Raised if unmatched_df or heat_df are not pandas DataFrames.
+        ColumnDoesNotExistError: Raised if a column you are trying to use for matching does not exist in either unmatched_df or heat_df.
+        ValueError: Raised if heat_id_col already exists in unmatched_df. Matched IDs are returned under the 'HEAT: ' prefix, so an existing column of the same name would be ambiguous — drop or rename it before calling.
+        
     Returns:
         Two DataFrames: first DataFrame is matched data, second is remaining data for onward matching.
     """
@@ -58,6 +100,10 @@ def perform_exact_match(
     if heat_id_col not in heat_df.columns:
         raise ColumnDoesNotExistError(
             f"Specified ID column '{heat_id_col}' not found in heat_df."
+        )
+    if heat_id_col in unmatched_df.columns:
+        raise ValueError(
+            f"{heat_id_col} already found in unmatched_df, only pass unmatched data to this function."
         )
 
     if unmatched_df.empty:
@@ -141,9 +187,11 @@ def perform_fuzzy_match(
     right_name_col: str,
     match_desc: str,
     threshold: int = 80,
+    heat_id_col: str | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """This function allows you to fuzzy match names of students in an external dataset to your HEAT Student Export to retrieve HEAT Student IDs.
     You can control the potential pool of fuzzy matches by specifying filter columns in both DataFrames e.g. only look for fuzzy matches where Date of Birth and Postcode matches.
+    Each student row receives at most one HEAT match (the highest-scoring one). The same HEAT record can be matched by more than one student row - this is expected when your data has one row per student per activity - in which case a warning is logged and no matches are removed.
     Note: there may be performance issues with very large datasets. If you have a large dataset, it is recommended to first use perform_exact_match to pull out exact matches and reduce the dataset before using this function for fuzzy matching.
 
     Args:
@@ -155,10 +203,11 @@ def perform_fuzzy_match(
         right_name_col: Column which contains the name information in heat_df.
         match_desc: A description of the match; added to a 'Match Type' col in the returned matched DataFrame. Should be descriptive to help you verify matches later, especially if joining multiple returns of this function and exporting to a .csv or Excel file.
         threshold (optional): The acceptable percentage match for fuzzy matching. Higher is stricter and matches will be more similar. Defaults to 80.
+        heat_id_col (optional): Defaults to None. The column in heat_df containing the HEAT Student ID. Not required for matching - it is only used so that, if one HEAT record is matched by several student rows, the warning can name the HEAT IDs affected. If omitted, the warning reports a count only.
 
     Raises:
         TypeError: Raised if unmatched_df or heat_df are not pandas DataFrames.
-        ColumnDoesNotExistError: Raised if columns specified as filters or name columns do not exist in their DataFrames.
+        ColumnDoesNotExistError: Raised if columns specified as filters or name columns do not exist in their DataFrames, or if heat_id_col is supplied and does not exist in heat_df.
         FilterColumnMismatchError: Raised if unequal number of columns specified in left and right filters.
         FuzzyMatchIndexError: Raised when unmatched_df does not have a unique index and cannot be used for matching.
 
@@ -181,10 +230,17 @@ def perform_fuzzy_match(
         raise ColumnDoesNotExistError(f"'{left_name_col}' not found in unmatched_df")
     if right_name_col not in heat_df.columns:
         raise ColumnDoesNotExistError(f"'{right_name_col}' not found in heat_df")
+    if heat_id_col is not None and heat_id_col not in heat_df.columns:
+        raise ColumnDoesNotExistError(f"'{heat_id_col}' not found in heat_df")
     # Check filter cols are same length
     if len(left_filter_cols) != len(right_filter_cols):
         raise FilterColumnMismatchError(
             "left_filter_cols and right_filter_cols must have the same length for mapping."
+        )
+    if not left_filter_cols or not right_filter_cols:
+        raise FilterColumnMismatchError(
+            "left_filter_cols and right_filter_cols must contain at least one column "
+            "to block fuzzy matching on."
         )
     # Check unmatched has a unique index
     if not unmatched_df.index.is_unique:
@@ -212,8 +268,10 @@ def perform_fuzzy_match(
         )
 
         # Create copies in case slice passed to function
+        # heat_df index is reset so each HEAT record can be identified by row; a duplicate
+        # index would make heat_df.loc[heat_idx] return a DataFrame and malform the match
         unmatched_df = unmatched_df.copy()
-        heat_df = heat_df.copy()
+        heat_df = heat_df.copy().reset_index(drop=True)
 
         # create heat_df blocks for faster matching
         grouped_heat = heat_df.groupby(right_filter_cols).groups
@@ -250,6 +308,7 @@ def perform_fuzzy_match(
                     res["Fuzzy Score"] = round(score, 2)
                     res["Match Type"] = match_desc
                     res["__SOURCE_INDEX__"] = idx
+                    res["__HEAT_INDEX__"] = heat_idx
                     matched_results.append(res)
 
         # final_matches processing
@@ -259,6 +318,10 @@ def perform_fuzzy_match(
                 by="Fuzzy Score", ascending=False, inplace=True, ignore_index=True
             )
 
+            # Warn (do not resolve) where one HEAT record is claimed by several rows.
+            # Must run before the rename below, while the '_HEAT' suffix is still in use.
+            _warn_reused_heat_records(final_matches, heat_id_col)
+
             # Rename HEAT columns
             heat_cols = [c for c in final_matches.columns if c.endswith(HEAT_SUFFIX)]
             mapping = {col: f"{HEAT_PREFIX}{col.removesuffix(HEAT_SUFFIX)}" for col in heat_cols}
@@ -266,7 +329,9 @@ def perform_fuzzy_match(
 
             # Sort out indices for dropping
             matched_indices = final_matches["__SOURCE_INDEX__"].tolist()
-            final_matches.drop(columns=["__SOURCE_INDEX__"], inplace=True)
+            final_matches.drop(
+                columns=["__SOURCE_INDEX__", "__HEAT_INDEX__"], inplace=True
+            )
 
             logger.info("%d students found in HEAT data.", len(final_matches))
         else:
@@ -297,6 +362,7 @@ def perform_school_age_range_fuzzy_match(
     To control the pool of fuzzy matches, data is first matched on school name, and then uses year group to only return students with a date of birth in range for that year group.
     Useful if you do not know a student's date of birth, but you do know which school they attend and their year group.
     Returns one dataframe of matches and one dataframe of remaining unmatched data.
+    Each student row receives at most one HEAT match (the highest-scoring one). The same HEAT record can be matched by more than one student row - this is expected when your data has one row per student per activity - in which case a warning is logged and no matches are removed.
     Note: there may be performance issues with very large datasets. If you have a large dataset, it is recommended to first use perform_exact_match to pull out exact matches and reduce the dataset before using this function for fuzzy matching.
 
     Args:
@@ -309,7 +375,7 @@ def perform_school_age_range_fuzzy_match(
         unmatched_year_group_col: Column in unmatched_df which contains year group for age range calculation.
         heat_dob_col: Column in heat_df which contains Student Date of Birth.
         match_desc: A description of the match; added to a 'Match Type' col in the returned matched DataFrame. Should be descriptive to help you verify matches later, especially if joining multiple returns of this function and exporting to a .csv or Excel file.
-        heat_id_col (optional): Column in heat_df which contains HEAT Student ID. Defaults to 'Student HEAT ID'.
+        heat_id_col (optional): Column in heat_df which contains HEAT Student ID. Defaults to 'Student HEAT ID'. Also used to name the HEAT IDs affected if one HEAT record is matched by several student rows.
         academic_year_start (optional): . Defaults to start of current academic year (calculated by package).
         threshold (optional): The acceptable percentage match for fuzzy matching. Higher is stricter and matches will be more similar. Defaults to 80.
 
@@ -329,8 +395,18 @@ def perform_school_age_range_fuzzy_match(
         raise TypeError("unmatched_df and heat_df must be pandas DataFrames.")
 
     # Copy originals in case df slice passed to this function
+    # heat_df index is reset so each HEAT record can be identified by row; a duplicate
+    # index would make heat_df.loc[heat_idx] return a DataFrame and malform the match
     unmatched_df = unmatched_df.copy()
-    heat_df = heat_df.copy()
+    heat_df = heat_df.copy().reset_index(drop=True)
+
+    # Check cols exist
+    for col in [unmatched_school_col, unmatched_name_col, unmatched_year_group_col]:
+        if col not in unmatched_df.columns:
+            raise ColumnDoesNotExistError(f"'{col}' not found in unmatched_df")
+    for col in [heat_name_col, heat_school_col, heat_dob_col, heat_id_col]:
+        if col not in heat_df.columns:
+            raise ColumnDoesNotExistError(f"'{col}' not found in heat_df")
 
     # Normalise HEAT dobs; assumes unmatched dobs have already been processed
     if not pd.api.types.is_datetime64_any_dtype(heat_df[heat_dob_col]):
@@ -341,13 +417,6 @@ def perform_school_age_range_fuzzy_match(
             raise TypeError(
                 f"'{heat_dob_col}' is not datetime and could not be converted."
             )
-    # Check cols exist
-    for col in [unmatched_school_col, unmatched_name_col, unmatched_year_group_col]:
-        if col not in unmatched_df.columns:
-            raise ColumnDoesNotExistError(f"'{col}' not found in unmatched_df")
-    for col in [heat_name_col, heat_school_col, heat_dob_col]:
-        if col not in heat_df.columns:
-            raise ColumnDoesNotExistError(f"'{col}' not found in heat_df")
 
     # Check unmatched has a unique index
     if not unmatched_df.index.is_unique:
@@ -420,6 +489,7 @@ def perform_school_age_range_fuzzy_match(
                 res["Fuzzy Score"] = round(score, 2)
                 res["Match Type"] = match_desc
                 res["__SOURCE_INDEX__"] = idx
+                res["__HEAT_INDEX__"] = heat_idx
                 matched_results.append(res)
 
     # Sorting, renaming and tidying
@@ -430,19 +500,9 @@ def perform_school_age_range_fuzzy_match(
             by="Fuzzy Score", ascending=False, inplace=True, ignore_index=True
         )
 
-        heat_student_id_col = f"{heat_id_col}{HEAT_SUFFIX}"
-
-        initial_count = len(final_matches)
-        final_matches = final_matches.drop_duplicates(
-            subset=[heat_student_id_col], keep="first"
-        )
-        conflicts_removed = initial_count - len(final_matches)
-
-        if conflicts_removed > 0:
-            logger.info(
-                "Removed %d duplicate HEAT ID assignments (kept highest scores).",
-                conflicts_removed,
-            )
+        # Warn (do not resolve) where one HEAT record is claimed by several rows.
+        # Must run before the rename below, while the '_HEAT' suffix is still in use.
+        _warn_reused_heat_records(final_matches, heat_id_col)
 
         # Rename HEAT columns
         heat_cols = [c for c in final_matches.columns if c.endswith(HEAT_SUFFIX)]
@@ -451,7 +511,9 @@ def perform_school_age_range_fuzzy_match(
 
         # Sort out indices for dropping
         matched_indices = final_matches["__SOURCE_INDEX__"].tolist()
-        final_matches.drop(columns=["__SOURCE_INDEX__"], inplace=True)
+        final_matches.drop(
+            columns=["__SOURCE_INDEX__", "__HEAT_INDEX__"], inplace=True
+        )
 
         logger.info("%d school/age fuzzy matches found.", len(final_matches))
     else:

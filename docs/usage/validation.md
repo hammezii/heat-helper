@@ -41,7 +41,7 @@ This function allows you to validate a DataFrame against a `pydantic` [Model](ht
     # LOAD DATA AND CREATE ERROR REPORT
     register = pd.read_csv('register.csv')
 
-    error_report = create_error_report(register, Register, 'register')
+    error_report = hh.create_error_report(register, Register, 'register')
 
     print(error_report.head(15))  
 
@@ -51,7 +51,7 @@ This function allows you to validate a DataFrame against a `pydantic` [Model](ht
     # Validated 14 rows in register. 4 rows have 4 total errors.
     #    val_error_count                                  val_error_details validation_status
     #0                 0                                               None             Valid
-    #1                 0                                               None           Invalid
+    #1                 0                                               None             Valid
     #2                 1      'date_of_birth': Input should be a valid date           Invalid
     #4                 0                                               None             Valid
     #3                 0                                               None             Valid

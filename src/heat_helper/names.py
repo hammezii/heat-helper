@@ -12,7 +12,9 @@ from .logger import get_logger, log_series_summary
 logger = get_logger(__name__)
 
 def format_name(text: str, errors: str = "raise") -> str | None:
-    """Cleans the formatting of names. Strips extra whitespaces, converts to title case (with exceptions for names like McDonald and O'Reilly) and tidies any spaces around hyphens.
+    """Cleans the formatting of names. Strips extra whitespaces, converts to title case (with exceptions for names like McDonald) and removes any spaces around hyphens.
+    Converting to title case will make any letters following an apostrophe capitals so names like O'Reilly are preserved.
+    There is no rule for names which begin with 'Mac' as following letter capitalisation is inconsistent and cannot be inferred.
 
     Args:
         text: The name you wish to clean.
@@ -34,13 +36,15 @@ def format_name(text: str, errors: str = "raise") -> str | None:
         working_text = text.strip().title()
         for pattern, replacement in replacements:
             working_text = re.sub(pattern, replacement, working_text)
-        # Preserves capitalisation after Mc and O' names
+        # Makes a single letter following an apostrophe lowercase
+        # Preserves capitalisation after Mc names
         working_text = re.sub(
-            r"\b(Mc)([a-z])", lambda m: m.group(1) + m.group(2).upper(), working_text
+            r"(?<!\bO)'([A-Z])\b", lambda m: "'" + m.group(1).lower(), working_text
         )
         working_text = re.sub(
-            r"\b(O')([a-z])", lambda m: m.group(1) + m.group(2).upper(), working_text
-        )
+                    r"\b(Mc)([a-z])", lambda m: m.group(1) + m.group(2).upper(), working_text
+                )
+
         return working_text
     except TypeError:
         if errors == "ignore":

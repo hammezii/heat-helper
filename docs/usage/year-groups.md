@@ -52,7 +52,7 @@ This function is designed to standardise the way that year groups appear in your
     ```
 
 ## Calculate Year Group from Date
-This function calculates which year group a date of birth falls into. Useful for checking students are in the year group you have been told (e.g. by the student or by the school), and then calculating a Phase Adjustment value if necessary. Year group is calculated for the current academic year. This can be overridden using the `start_year` argument to calculate which year group students would have been in in previous academic years. See [API documentation](year-groups-doc.md#heat_helper.yeargroup.calculate_year_group_from_date). 
+This function calculates which year group a date of birth falls into. Useful for checking students are in the year group you have been told (e.g. by the student or by the school), and then calculating a Phase Adjustment value if necessary. Year group is calculated for the current academic year. This can be overridden using the `start_of_academic_year` argument to calculate which year group students would have been in in previous academic years. See [API documentation](../api-documentation/year-groups-doc.md#heat_helper.yeargroup.calculate_year_group_from_date). 
 
 Year groups are returned in the format 'Year i' except for Reception which is returned as 'Reception'. If errors are ignored for this funtion, None is returned.
 

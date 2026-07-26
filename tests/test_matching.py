@@ -311,9 +311,13 @@ def test_filter_mismatch_error(sample_unmatched, sample_heat):
 
 
 def test_fuzzy_non_unique_index_error(sample_heat):
-    df_non_unique = pd.DataFrame({"Name": ["A", "B"]}, index=[0, 0])
+    df_non_unique = pd.DataFrame(
+        {"Name": ["A", "B"], "DOB": ["2010-01-01", "2010-01-01"]}, index=[0, 0]
+    )
     with pytest.raises(FuzzyMatchIndexError):
-        perform_fuzzy_match(df_non_unique, sample_heat, [], [], "Name", "Name", "T")
+        perform_fuzzy_match(
+            df_non_unique, sample_heat, ["DOB"], ["DOB"], "Name", "Name", "T"
+        )
 
 
 def test_column_collision_warning(sample_unmatched, sample_heat, caplog):
@@ -417,6 +421,216 @@ def test_fuzzy_match_unmatched_empty(valid_dfs, caplog):
     assert f"Skipping match type: {match_desc}" in caplog.text
     assert any(r.levelno == logging.WARNING for r in caplog.records)
 
+
+# --- Shared HEAT records: warn, don't resolve ---
+
+
+@pytest.fixture
+def shared_heat_record():
+    """One HEAT record that two rows of unmatched data can both match."""
+    return pd.DataFrame(
+        {
+            "Name": ["Jonathan Smith"],
+            "DOB": ["2013-11-01"],
+            "Student HEAT ID": ["H1"],
+        }
+    )
+
+
+def _fuzzy_shared(unmatched, heat, caplog, **kwargs):
+    """Runs perform_fuzzy_match over shared-record data, capturing warnings."""
+    with caplog.at_level(logging.WARNING, logger="heat_helper.matching"):
+        return perform_fuzzy_match(
+            unmatched,
+            heat,
+            ["DOB"],
+            ["DOB"],
+            "Name",
+            "Name",
+            "Shared Record Test",
+            threshold=70,
+            **kwargs,
+        )
+
+
+def test_fuzzy_match_two_students_one_heat_record(shared_heat_record, caplog):
+    """Different students matching one HEAT record: both kept, warning raised."""
+    unmatched = pd.DataFrame(
+        {"Name": ["Jon Smith", "Jonathan Smyth"], "DOB": ["2013-11-01"] * 2}
+    )
+
+    matches, remaining = _fuzzy_shared(
+        unmatched, shared_heat_record, caplog, heat_id_col="Student HEAT ID"
+    )
+
+    assert len(matches) == 2
+    assert matches["HEAT: Student HEAT ID"].tolist() == ["H1", "H1"]
+    assert len(remaining) == 0
+    assert "more than one student row" in caplog.text
+
+
+def test_fuzzy_match_same_student_listed_twice(caplog):
+    """The legitimate multi-activity case: both rows keep the same HEAT ID."""
+    unmatched = pd.DataFrame(
+        {
+            "Name": ["Jon Smith", "Jon Smith"],
+            "DOB": ["2013-11-01"] * 2,
+            "Activity ID": ["A1", "A2"],
+        }
+    )
+    heat = pd.DataFrame(
+        {"Name": ["Jon Smith"], "DOB": ["2013-11-01"], "Student HEAT ID": ["H1"]}
+    )
+
+    matches, remaining = _fuzzy_shared(
+        unmatched, heat, caplog, heat_id_col="Student HEAT ID"
+    )
+
+    assert len(matches) == 2
+    assert matches["HEAT: Student HEAT ID"].tolist() == ["H1", "H1"]
+    assert sorted(matches["Activity ID"]) == ["A1", "A2"]
+    assert len(remaining) == 0
+
+
+def test_fuzzy_match_warning_names_ids_when_heat_id_col_given(
+    shared_heat_record, caplog
+):
+    unmatched = pd.DataFrame(
+        {"Name": ["Jon Smith", "Jonathan Smyth"], "DOB": ["2013-11-01"] * 2}
+    )
+
+    _fuzzy_shared(unmatched, shared_heat_record, caplog, heat_id_col="Student HEAT ID")
+
+    assert "H1" in caplog.text
+
+
+def test_fuzzy_match_warning_count_only_without_heat_id_col(
+    shared_heat_record, caplog
+):
+    unmatched = pd.DataFrame(
+        {"Name": ["Jon Smith", "Jonathan Smyth"], "DOB": ["2013-11-01"] * 2}
+    )
+
+    matches, _ = _fuzzy_shared(unmatched, shared_heat_record, caplog)
+
+    assert len(matches) == 2
+    assert "1 HEAT record(s) matched to more than one student row" in caplog.text
+    assert "H1" not in caplog.text
+
+
+def test_fuzzy_match_no_warning_when_records_unique(caplog):
+    """Distinct students matching distinct HEAT records produce no warning."""
+    unmatched = pd.DataFrame(
+        {"Name": ["Jon Smith", "Jane Doe"], "DOB": ["2013-11-01"] * 2}
+    )
+    heat = pd.DataFrame(
+        {
+            "Name": ["Jonathan Smith", "Jane Doe"],
+            "DOB": ["2013-11-01"] * 2,
+            "Student HEAT ID": ["H1", "H2"],
+        }
+    )
+
+    matches, _ = _fuzzy_shared(unmatched, heat, caplog, heat_id_col="Student HEAT ID")
+
+    assert len(matches) == 2
+    assert "more than one student row" not in caplog.text
+
+
+def test_fuzzy_match_invalid_heat_id_col_raises(shared_heat_record):
+    unmatched = pd.DataFrame({"Name": ["Jon Smith"], "DOB": ["2013-11-01"]})
+
+    with pytest.raises(ColumnDoesNotExistError, match="Not A Column"):
+        perform_fuzzy_match(
+            unmatched,
+            shared_heat_record,
+            ["DOB"],
+            ["DOB"],
+            "Name",
+            "Name",
+            "Bad ID Col",
+            heat_id_col="Not A Column",
+        )
+
+
+def test_fuzzy_match_heat_df_duplicate_index():
+    """A heat_df with a duplicate index returns well-formed single rows."""
+    unmatched = pd.DataFrame({"Name": ["Jon Smith"], "DOB": ["2013-11-01"]})
+    heat = pd.DataFrame(
+        {
+            "Name": ["Jon Smith", "Jane Doe"],
+            "DOB": ["2013-11-01", "2013-11-01"],
+            "Student HEAT ID": ["H1", "H2"],
+        },
+        index=[0, 0],
+    )
+
+    matches, remaining = perform_fuzzy_match(
+        unmatched, heat, ["DOB"], ["DOB"], "Name", "Name", "Dup Index", threshold=70
+    )
+
+    assert len(matches) == 1
+    assert matches.iloc[0]["HEAT: Student HEAT ID"] == "H1"
+    assert len(remaining) == 0
+
+
+def test_school_age_heat_df_duplicate_index(unmatched_data, heat_data):
+    """A heat_df with a duplicate index returns well-formed single rows."""
+    heat_dupe_index = heat_data.set_axis([0, 0, 0], axis=0)
+
+    with patch("heat_helper.matching.calculate_dob_range_from_year_group") as mock_dob:
+        mock_dob.return_value = (date(2010, 9, 1), date(2011, 8, 31))
+
+        matches, _ = perform_school_age_range_fuzzy_match(
+            unmatched_data,
+            heat_dupe_index,
+            "School",
+            "HEAT_School",
+            "Name",
+            "HEAT_Name",
+            "YG",
+            "DOB",
+            "Dup Index",
+            heat_id_col="HEAT_ID",
+        )
+
+    # One well-formed row per student, each with a scalar HEAT ID
+    assert len(matches) == 2
+    assert matches["HEAT: HEAT_ID"].tolist() == [101, 102]
+    assert all(np.isscalar(v) for v in matches["HEAT: HEAT_Name"])
+
+
+def test_fuzzy_helper_columns_not_returned(shared_heat_record, unmatched_data, heat_data, caplog):
+    """Internal index columns never leak into either function's output."""
+    unmatched = pd.DataFrame(
+        {"Name": ["Jon Smith", "Jonathan Smyth"], "DOB": ["2013-11-01"] * 2}
+    )
+
+    fuzzy_matches, _ = _fuzzy_shared(
+        unmatched, shared_heat_record, caplog, heat_id_col="Student HEAT ID"
+    )
+
+    with patch("heat_helper.matching.calculate_dob_range_from_year_group") as mock_dob:
+        mock_dob.return_value = (date(2010, 9, 1), date(2011, 8, 31))
+
+        school_matches, _ = perform_school_age_range_fuzzy_match(
+            unmatched_data,
+            heat_data,
+            "School",
+            "HEAT_School",
+            "Name",
+            "HEAT_Name",
+            "YG",
+            "DOB",
+            "Helper Col Test",
+            heat_id_col="HEAT_ID",
+        )
+
+    for frame in (fuzzy_matches, school_matches):
+        assert "__SOURCE_INDEX__" not in frame.columns
+        assert "__HEAT_INDEX__" not in frame.columns
+
+
 # ---- FUZZY MATCHING SCHOOL DOB RANGE TESTE
 
 
@@ -469,8 +683,8 @@ def test_successful_school_age_match(unmatched_data, heat_data):
         assert len(remaining) == 0
 
 
-def test_duplicate_heat_id_conflict(unmatched_data, heat_data):
-    """Test that duplicate HEAT IDs are removed, keeping highest score."""
+def test_school_age_shared_heat_id_kept_and_warned(heat_data, caplog):
+    """Two rows matching one HEAT record are both kept, with a warning naming the ID."""
     # Two students match the same HEAT record
     unmatched_dupes = pd.DataFrame(
         {
@@ -483,23 +697,26 @@ def test_duplicate_heat_id_conflict(unmatched_data, heat_data):
     with patch("heat_helper.matching.calculate_dob_range_from_year_group") as mock_dob:
         mock_dob.return_value = (date(2010, 9, 1), date(2011, 8, 31))
 
-        # We don't need to mock extractOne if the natural score for 'John' > 'Jon'
-        matches, remaining = perform_school_age_range_fuzzy_match(
-            unmatched_dupes,
-            heat_data,
-            "School",
-            "HEAT_School",
-            "Name",
-            "HEAT_Name",
-            "YG",
-            "DOB",
-            "Conflict Test",
-            heat_id_col="HEAT_ID",
-        )
+        with caplog.at_level(logging.WARNING, logger="heat_helper.matching"):
+            matches, remaining = perform_school_age_range_fuzzy_match(
+                unmatched_dupes,
+                heat_data,
+                "School",
+                "HEAT_School",
+                "Name",
+                "HEAT_Name",
+                "YG",
+                "DOB",
+                "Conflict Test",
+                heat_id_col="HEAT_ID",
+            )
 
-        # Should only keep one match (the better score)
-        assert len(matches) == 1
-        assert len(remaining) == 1
+    # Both rows keep the match; the shared record is warned about, not resolved
+    assert len(matches) == 2
+    assert matches["HEAT: HEAT_ID"].nunique() == 1
+    assert len(remaining) == 0
+    assert "more than one student row" in caplog.text
+    assert "101" in caplog.text
 
 
 # --- Error Handling & Branch Coverage ---
@@ -526,8 +743,8 @@ def test_dob_conversion_success(unmatched_data, heat_data):
         "HEAT_Name",
         "YG",
         "DOB",
-        "HEAT_ID",
-        "T",
+        heat_id_col="HEAT_ID",
+        match_desc="T",
     )
 
     # H-03 guard: conversion runs on an internal copy; caller's frame untouched.
@@ -549,8 +766,8 @@ def test_dob_conversion_failure(unmatched_data, heat_data):
             "HEAT_Name",
             "YG",
             "DOB",
-            "HEAT_ID",
-            "T",
+            heat_id_col="HEAT_ID",
+            match_desc="T",
         )
 
 
@@ -565,8 +782,8 @@ def test_column_missing_errors_unmatched(unmatched_data, heat_data):
             "HEAT_Name",
             "YG",
             "DOB",
-            "HEAT_ID",
-            "T",
+            heat_id_col="HEAT_ID",
+            match_desc="T",
         )
 
 def test_column_missing_errors_heat(unmatched_data, heat_data):
@@ -580,33 +797,8 @@ def test_column_missing_errors_heat(unmatched_data, heat_data):
             "HEAT_Name",
             "YG",
             "DOB",
-            "HEAT_ID",
-            "T",
-        )
-
-
-def test_non_unique_index_error(heat_data):
-    bad_df = pd.DataFrame(
-        {
-            "Name": ["A", "B"],
-            "S": ["Blank", "Blank"],
-            "N": ["James", "Sarah"],
-            "YG": [10, 11],
-        },
-        index=[0, 0],
-    )
-    with pytest.raises(FuzzyMatchIndexError):
-        perform_school_age_range_fuzzy_match(
-            bad_df,
-            heat_data,
-            "S",
-            "HEAT_School",
-            "N",
-            "HEAT_Name",
-            "YG",
-            "DOB",
-            "HID",
-            "T",
+            heat_id_col="HEAT_ID",
+            match_desc="T",
         )
 
 
@@ -623,8 +815,8 @@ def test_calculate_dob_exception_skip(unmatched_data, heat_data):
             "HEAT_Name",
             "YG",
             "DOB",
-            "HEAT_ID",
-            "T",
+            heat_id_col="HEAT_ID",
+            match_desc="T",
         )
         assert matches.empty
         assert len(remaining) == 2
@@ -644,8 +836,8 @@ def test_no_potential_matches_empty_block(unmatched_data, heat_data):
             "HEAT_Name",
             "YG",
             "DOB",
-            "HEAT_ID",
-            "T",
+            heat_id_col="HEAT_ID",
+            match_desc="T",
         )
         assert matches.empty
 
@@ -662,7 +854,30 @@ def test_school_not_in_heat(unmatched_data, heat_data):
         "HEAT_Name",
         "YG",
         "DOB",
-        "HEAT_ID",
-        "T",
+        heat_id_col="HEAT_ID",
+        match_desc="T",
     )
     assert matches.empty
+
+def test_missing_dob_col_raises_column_error(unmatched_data, heat_data):
+    with pytest.raises(ColumnDoesNotExistError):
+        perform_school_age_range_fuzzy_match(
+            unmatched_data, heat_data, "School", "HEAT_School", "Name",
+            "HEAT_Name", "YG", "NOT_A_COL", "T", heat_id_col="HEAT_ID",
+        )
+
+def test_fuzzy_empty_filter_cols_error(sample_heat):
+    df = pd.DataFrame({"Name": ["A", "B"]})
+    with pytest.raises(FilterColumnMismatchError):
+        perform_fuzzy_match(df, sample_heat, [], [], "Name", "Name", "T")
+
+def test_school_age_non_unique_index_error(heat_data):
+    bad_df = pd.DataFrame(
+        {"S": ["Blank", "Blank"], "N": ["James", "Sarah"], "YG": [10, 11]},
+        index=[0, 0],
+    )
+    with pytest.raises(FuzzyMatchIndexError):
+        perform_school_age_range_fuzzy_match(
+            bad_df, heat_data, "S", "HEAT_School", "N", "HEAT_Name", "YG", "DOB",
+            match_desc="T", heat_id_col="HEAT_ID",
+        )

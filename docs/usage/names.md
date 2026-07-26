@@ -7,10 +7,12 @@ These functions are used to help you clean and format student names.
 ## Format Name
 This function takes text (names) and cleans them. It carries out a number of common cleaning steps:
 
-- changes to title case (with exceptions for names like McDonald and O'Reilly),
+- changes to title case (with exceptions for names like McDonald),
 - removes any number of spaces either side of hyphens,
 - cleans instances of more than one space and changes it to a single space,
 - cleans leading or trailing whitespace.
+
+Note: While names which begin with 'Mc' have the following letter capitalised, it is not possible to do this for 'Mac' names as capitalisation of the following letter is inconsistent. Check any names like this if you rely on them for exact matching.
 
 !!! info
     You can pass the `errors` argument to control error behaviour. Default is 'raise' which will raise all errors and stop your script. 'ignore' will not raise an error and return the original value. 'coerce' will not raise an error and return None.
@@ -204,7 +206,7 @@ The function will remove any number of numbers. Numbers do not have to be consec
     ```
 
 ## Create Full Name
-This function concatenates several strings into one string, typically for names. This is necessary if you want to carry out exact or fuzzy matching between names on a register and names in your HEAT Student export. You should create a full name column in both dataframes and use this for [matching](matching.md).
+This function concatenates several strings into one string, typically for names. This is necessary if you want to carry out exact or fuzzy matching between names on a register and names in your HEAT Student export. You should create a full name column in both dataframes and use this for [matching](../usage/matching.md).
 
 !!! tip
     Middle names are optional. The function will run if you only have a first and last name string or column. Middle name functionality is included in case you use this field in HEAT.

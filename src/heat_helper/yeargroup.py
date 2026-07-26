@@ -8,7 +8,7 @@ from .logger import get_logger
 
 logger = get_logger(__name__)
 
-def clean_year_group(year_group: str | int, errors: str = "raise") -> str | None:
+def clean_year_group(year_group: str | int, errors: str = "raise") -> str | int | None:
     """Takes school year groups and cleans them to have the consistent format 'Year i'.
 
     Args:
@@ -28,7 +28,7 @@ def clean_year_group(year_group: str | int, errors: str = "raise") -> str | None
     except (InvalidYearGroupError, TypeError, FELevelError):
         if errors == "ignore":
             logger.debug("clean_year_group: non-valid input %r ignored, returning original", year_group)
-            return str(year_group)
+            return year_group
         if errors == "coerce":
             logger.debug("clean_year_group: non-valid input %r coerced to None", year_group)
             return None

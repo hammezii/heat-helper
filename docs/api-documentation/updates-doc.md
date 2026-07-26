@@ -2,7 +2,7 @@
 icon: material/update
 ---
 # Updates API
-This is the API reference for all functions for finding data which needs updating. You can find usage examples **[here](updates.md)**.
+This is the API reference for all functions for finding data which needs updating. You can find usage examples **[here](../usage/updates.md)**.
 
 ::: heat_helper.updates.get_updates
     options:

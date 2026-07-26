@@ -30,7 +30,7 @@ This means that in a new environment you can simply install `heat_helper` and ha
 ## Optional Dependencies
 `heat_helper` has the following optional dependencies:
 
-- [`pydantic`](https://docs.pydantic.dev/latest/) - for data validation. If installed, you gain access to [validation functions](validation.md).
+- [`pydantic`](https://docs.pydantic.dev/latest/) - for data validation. If installed, you gain access to [validation functions](../usage/validation.md).
 
 To install `pydantic` use:
 

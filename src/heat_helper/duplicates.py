@@ -26,6 +26,14 @@ def find_duplicates(
     using either date of birth or date of birth and postcode, and setting twin_protection to True/False. Twin Protection isolates
     first names in potential matches to filter out people with totally different first names. This is not totally failsafe and may
     still return some twins as potential duplicates.
+    
+    Note: rows with a missing value in date_of_birth_col (or, when fuzzy_type is
+    'strict', in postcode_col) cannot be grouped and are never compared, so they
+    are always reported as having no duplicates. Clean or filter nulls in these
+    columns before calling.
+
+    Note: the returned DataFrame is sorted by 'Potential Duplicates' and the ID
+    column, so row order will differ from the input.
 
     Args:
         df (pd.DataFrame): The DataFrame contain records to check for duplicates.
@@ -35,7 +43,7 @@ def find_duplicates(
         id_col (str, optional): If there is already a column in your DataFrame which contains some kind of ID number, set it here. Otherwise, one will be created. Defaults to None.
         threshold (int, optional): The threshold for fuzzy matching. The percentage match of the name. Defaults to 80.
         fuzzy_type (str, optional): Controls whether date_of_birth_col or date_of_birth_col and postcode_col are used to create blocks for fuzzy matching. 'permissive' uses only date_of_birth_col, so will find duplicates with different postcodes. 'strict' uses both columns, so will only return potential duplicates where both date of birth and postcode match. Defaults to "permissive".
-        twin_protection (bool, optional): If True, this filters out suspected twins with less similar first names (<70% match) from returned potential duplicates. Defaults to True.
+        twin_protection (bool, optional): If True, this filters out suspected twins whose first names match by less than twin_protection_threshold from returned potential duplicates. Defaults to True.
         twin_protection_threshold (int, optional): The threshold for first name matching when twin_protection is True. Defaults to 70.
 
     Raises:
@@ -94,10 +102,17 @@ def find_duplicates(
 
     # Set up ID column if not passed to function
     if id_col is None:
-        new_df["Duplicate ID"] = "#" + (pd.Series(range(len(new_df))) + 1).astype(str)
+        new_df["Duplicate ID"] = "#" + pd.Series(
+            range(1, len(new_df) + 1), 
+            index=new_df.index).astype(str)
         id_col = "Duplicate ID"
 
     logger.debug("find_duplicates: searching %d records for duplicates", len(df))
+
+    # Internal string-typed key: all the grouping/union logic below joins IDs
+    # into strings, so normalise once here rather than assuming str input.
+    _KEY = "_dupe_key"
+    new_df[_KEY] = new_df[id_col].astype(str)
 
     # Exact Matches
     def _format_duplicate_list(group_series):
@@ -107,7 +122,7 @@ def find_duplicates(
         return ""
 
     new_df["Potential Duplicates"] = (
-        new_df.groupby(col_list)[id_col].transform(_format_duplicate_list).fillna("")
+        new_df.groupby(col_list)[_KEY].transform(_format_duplicate_list).fillna("")
     )
 
     # Fuzzy Matching
@@ -143,7 +158,7 @@ def find_duplicates(
             continue
 
         names = block_df["_match_name"].tolist()
-        ids = block_df[id_col].tolist()
+        ids = block_df[_KEY].tolist()
 
         # Calculate similarity matrix
         score_matrix = process.cdist(names, names, scorer=fuzz.token_sort_ratio)
@@ -168,7 +183,7 @@ def find_duplicates(
                     union(ids[i], ids[j])
 
     clusters = {}
-    for i in new_df[id_col]:
+    for i in new_df[_KEY]:
         root = find_root(i)
         if root not in clusters:
             clusters[root] = []
@@ -182,17 +197,17 @@ def find_duplicates(
                 id_to_string_map[member] = member_str
 
     # Apply the map
-    new_df["Potential Duplicates"] = new_df[id_col].map(id_to_string_map).fillna("")
+    new_df["Potential Duplicates"] = new_df[_KEY].map(id_to_string_map).fillna("")
 
+    new_df = new_df.sort_values(["Potential Duplicates", _KEY], ascending=False)
+    
     # Final clean up
-    if "_match_name" in new_df.columns:
-        new_df.drop(columns=["_match_name"], inplace=True)
+    new_df.drop(columns=[c for c in ("_match_name", _KEY) if c in new_df.columns],
+                inplace=True)
 
     new_df["Potential Duplicates"] = new_df["Potential Duplicates"].replace(
         r"^\s*$", None, regex=True
     )
-
-    new_df = new_df.sort_values(["Potential Duplicates", id_col], ascending=False)
 
     dupe_count = len(new_df) - new_df["Potential Duplicates"].isna().sum()
     logger.info("%d records are potential duplicates.", dupe_count)

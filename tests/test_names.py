@@ -26,6 +26,15 @@ from heat_helper.names import (
         ("mcdonald", "McDonald"),
         ("o'reilly", "O'Reilly"),
         ("o'connor-mcdonald", "O'Connor-McDonald"),
+        ("JANE'S", "Jane's"), 
+        ("JANE'S SMITH", "Jane's Smith"), 
+        ("O'REILLY", "O'Reilly"),
+        ("o'reilly", "O'Reilly"), 
+        ("O'B", "O'B"), 
+        ("o'b", "O'B"), 
+        ("D'ARCY", "D'Arcy"),
+        ("anne-marie o'donnell", "Anne-Marie O'Donnell"), 
+        ("MCDONALD", "McDonald"),
     ],
 )
 def test_format_names(name, clean_name):

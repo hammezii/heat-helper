@@ -2,7 +2,7 @@
 icon: material/math-log
 ---
 # Logger API
-This is the API reference for the heat_helper logger. You can find usage examples **[here](logger.md)**.
+This is the API reference for the heat_helper logger. You can find usage examples **[here](../usage/logger.md)**.
 
 ::: heat_helper.logger.enable_logging
     options:
